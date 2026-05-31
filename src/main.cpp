@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-05-31 / 22:55:55
+ * @ Modified time: 2026-05-31 / 23:16:53
  */
 
 #include <cstdlib>
@@ -11,12 +11,12 @@
 #include "utils/io.hpp"
 #include "utils/Logger.hpp"
 
-void printUsage() {
+static void printUsage() {
     io::errln("Usage: ./bin/webserv [CONFIGURATION_FILE]...");
     io::errln("Try './bin/webserv conf/default.conf' for a specific setup.");
 }
 
-std::string parseArguments(const int argc, const char* arg) {
+static std::string parseArguments(const int argc, const char* arg) {
     if (argc == 1) {
         return ("conf/default.conf");
     } else if (argc == 2) {
