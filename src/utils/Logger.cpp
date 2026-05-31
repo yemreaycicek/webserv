@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-31 / 20:51:21
  * @ Modified by: yaycicek
- * @ Modified time: 2026-05-31 / 23:28:19
+ * @ Modified time: 2026-05-31 / 23:34:56
  */
 
 #include "utils/Logger.hpp"
@@ -21,7 +21,7 @@ Logger::Logger() {
         }
     }
 
-    _logFile.open("log/webserv.log", std::ios::out | std::ios::app);
+    _logFile.open("log/webserv.log", std::ios::out | std::ios::trunc);
     if (!_logFile.is_open()) {
         std::cerr << "Could not open log file!" << std::endl;
     } else {
