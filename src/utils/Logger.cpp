@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-31 / 20:51:21
  * @ Modified by: yaycicek
- * @ Modified time: 2026-05-31 / 23:08:38
+ * @ Modified time: 2026-05-31 / 23:28:19
  */
 
 #include "utils/Logger.hpp"
@@ -11,6 +11,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <ctime>
 #include <iostream>
 
 Logger::Logger() {
@@ -56,5 +57,15 @@ void Logger::log(const LogLevel level, const std::string& message) {
             prefix = "[ ERROR ]   ";
             break;
     }
-    _logFile << prefix << message << std::endl;
+    _logFile << "[ " << getTimestamp() << " ] " << prefix << message << std::endl;
+}
+
+std::string Logger::getTimestamp() const {
+    std::time_t now = std::time(NULL);
+    std::tm* localTime = std::localtime(&now);
+
+    char buffer[24];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localTime);
+
+    return (std::string(buffer));
 }

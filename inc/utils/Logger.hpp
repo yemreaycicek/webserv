@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-31 / 20:51:28
  * @ Modified by: yaycicek
- * @ Modified time: 2026-05-31 / 22:32:56
+ * @ Modified time: 2026-05-31 / 23:24:29
  */
 
 #ifndef WEBSERV_UTILS_LOGGER_HPP
@@ -31,6 +31,8 @@ class Logger {
         Logger(const Logger& other);
         Logger& operator=(const Logger& other);
         ~Logger();
+
+        std::string getTimestamp() const;
 };
 
 #ifndef DEBUG_MODE
