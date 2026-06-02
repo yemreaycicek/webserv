@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-31 / 20:51:21
  * @ Modified by: yaycicek
- * @ Modified time: 2026-05-31 / 23:34:56
+ * @ Modified time: 2026-06-02 / 14:25:18
  */
 
 #include "utils/Logger.hpp"
@@ -13,6 +13,7 @@
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <string>
 
 Logger::Logger() {
     if (mkdir("log", 0777) == -1) {

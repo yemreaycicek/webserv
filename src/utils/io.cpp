@@ -2,13 +2,14 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 23:29:02
  * @ Modified by: yaycicek
- * @ Modified time: 2026-05-28 / 00:29:37
+ * @ Modified time: 2026-06-02 / 14:25:36
  */
 
 #include "utils/io.hpp"
 
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 void io::print(const std::string& message) {
     std::cout << message;
