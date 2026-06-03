@@ -2,11 +2,16 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-05-31 / 23:16:53
+ * @ Modified time: 2026-06-03 / 19:14:18
  */
 
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 #include <string>
+#include <vector>
+
+#include "config/Lexer.hpp"
 
 #include "utils/io.hpp"
 #include "utils/Logger.hpp"
@@ -32,5 +37,19 @@ int main(int argc, char **argv)
     std::string configFile = parseArguments(argc, argv[1]);
     LOG_INFO("Webserv process started.");
     LOG_INFO("Target configuration file: " + configFile);
+
+    std::ifstream file(configFile.c_str());
+    if (!file.is_open()) {
+        LOG_ERR("Could not open configuration file: " + configFile);
+        return (1);
+    }
+
+    std::ostringstream oss;
+    oss << file.rdbuf();
+    std::string configFileContent = oss.str();
+    file.close();
+
+    conf::Lexer lexer;
+    std::vector<conf::Token> tokens = lexer.tokenize(configFileContent);
     return (0);
 }
