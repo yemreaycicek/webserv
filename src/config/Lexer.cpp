@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-03 / 19:13:28
+ * @ Modified time: 2026-06-03 / 19:28:25
  */
 
 #include "config/Lexer.hpp"
@@ -11,10 +11,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-
-#if DEBUG_MODE
-    #include "utils/Logger.hpp"
-#endif
 
 namespace conf {
     Lexer::Lexer() : _pos(0), _line(1) {}
@@ -33,14 +29,6 @@ namespace conf {
     Lexer::~Lexer() {}
 
     std::vector<Token> Lexer::tokenize(const std::string& input) {
-        #if DEBUG_MODE
-            if (input.empty()) {
-                LOG_ERR("deneme");
-            } else {
-                LOG_INFO("DENEME 992");
-            }
-        #endif
-
         _input = input;
 
         while (_pos < _input.length()) {
