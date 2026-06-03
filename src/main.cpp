@@ -2,8 +2,10 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-03 / 19:29:02
+ * @ Modified time: 2026-06-03 / 20:22:22
  */
+
+#include <unistd.h>
 
 #include <cstdlib>
 #include <fstream>
@@ -19,32 +21,61 @@ static void printUsage() {
     io::errln("Try './bin/webserv conf/default.conf' for a specific setup.");
 }
 
-static std::string parseArguments(const int argc, const char* arg) {
+static void parseArguments(std::string& configFilePath, const int argc, const char* arg) {
     if (argc == 1) {
-        return ("conf/default.conf");
+        configFilePath = "conf/default.conf"; 
     } else if (argc == 2) {
-        return (arg);
+        configFilePath = arg;
     } else {
         printUsage();
         std::exit(2);
     }
 }
 
-int main(int argc, char **argv)
-{
-    std::string configFile = parseArguments(argc, argv[1]);
+static void checkFileExtension(const std::string& filepath) {
+    std::string filename;
+    std::size_t slashPos = filepath.find_last_of('/');
 
-    std::ifstream file(configFile.c_str());
+    if (slashPos == std::string::npos) {
+        filename = filepath;
+    } else {
+        filename = filepath.substr(slashPos + 1);
+    }
+
+    if (filename.length() < 6 || filename.substr(filename.length() - 5) != ".conf") {
+        io::errln("Configuration file must have a valid base name and a '.conf' extension.");
+        std::exit(1);
+    }
+ }
+
+ static void readFileContent(std::string& configFileContent, const std::string& configFilePath) {
+    if (access(configFilePath.c_str(), F_OK) != 0) {
+        io::errln("Configuration file does not exist: " + configFilePath);
+        std::exit(1);
+    }
+    if (access(configFilePath.c_str(), R_OK) != 0) {
+        io::errln("Permission denied to read configuration file: " + configFilePath);
+        std::exit(1);
+    }
+
+    std::ifstream file(configFilePath.c_str());
     if (!file.is_open()) {
-        return (1);
+        io::errln("Could not open configuration file: " + configFilePath);
+        std::exit(1);
     }
 
     std::ostringstream oss;
     oss << file.rdbuf();
-    std::string configFileContent = oss.str();
-    file.close();
+    configFileContent = oss.str();
+ }
 
-    conf::Lexer lexer;
-    std::vector<conf::Token> tokens = lexer.tokenize(configFileContent);
+int main(int argc, char **argv)
+{
+    std::string configFilePath;
+    std::string configFileContent;
+
+    parseArguments(configFilePath, argc, argv[1]);
+    checkFileExtension(configFilePath);
+    readFileContent(configFileContent, configFilePath);
     return (0);
 }
