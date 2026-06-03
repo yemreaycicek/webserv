@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-03 / 20:55:11
+ * @ Modified time: 2026-06-03 / 21:17:46
  */
 
 #include <unistd.h>
@@ -77,5 +77,8 @@ int main(int argc, char **argv)
     parseArguments(configFilePath, argc, argv[1]);
     checkFileExtension(configFilePath);
     readFileContent(configFileContent, configFilePath);
+
+    conf::Lexer lexer;
+    std::vector<conf::Token> tokens = lexer.tokenize(configFileContent);
     return (0);
 }
