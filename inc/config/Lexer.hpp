@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:08:14
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-03 / 17:56:10
+ * @ Modified time: 2026-06-03 / 20:43:40
  */
 
 #ifndef WEBSERV_CONFIG_LEXER_HPP
@@ -23,9 +23,8 @@ namespace conf {
     struct Token {
         TokenType type;
         std::string value;
-        std::size_t line;
 
-        Token(const TokenType t, const std::string& v, const std::size_t l) : type(t), value(v), line(l) {}
+        Token(const TokenType t, const std::string& v) : type(t), value(v) {}
     };
 
     class Lexer {
@@ -40,7 +39,6 @@ namespace conf {
         private:
             std::string _input;
             std::size_t _pos;
-            std::size_t _line;
             std::vector<Token> _tokens;
 
             void addToken(TokenType type, const std::string& value);

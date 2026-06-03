@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-03 / 19:28:25
+ * @ Modified time: 2026-06-03 / 20:43:27
  */
 
 #include "config/Lexer.hpp"
@@ -13,14 +13,13 @@
 #include <iostream>
 
 namespace conf {
-    Lexer::Lexer() : _pos(0), _line(1) {}
-    Lexer::Lexer(const Lexer& other) : _input(other._input), _pos(other._pos), _line(other._line) {}
+    Lexer::Lexer() : _pos(0) {}
+    Lexer::Lexer(const Lexer& other) : _input(other._input), _pos(other._pos) {}
     
     Lexer& Lexer::operator=(const Lexer& other) {
         if (this != &other) {
             _input = other._input;
             _pos = other._pos;
-            _line = other._line;
             _tokens = other._tokens;
         }
         return (*this);
@@ -65,7 +64,7 @@ namespace conf {
     }
 
     void Lexer::addToken(TokenType type, const std::string& value) {
-        _tokens.push_back(Token(type, value, _line));
+        _tokens.push_back(Token(type, value));
     }
 
 
@@ -74,7 +73,6 @@ namespace conf {
             char c = _input[_pos];
 
             if (c == '\n') {
-                _line++;
                 _pos++;
             } else if (c == ' ' || c == '\t' ||  c == '\r' || c == '\v' || c == '\f') {
                 _pos++;
