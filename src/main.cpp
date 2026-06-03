@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-03 / 20:22:22
+ * @ Modified time: 2026-06-03 / 20:55:11
  */
 
 #include <unistd.h>
@@ -46,9 +46,9 @@ static void checkFileExtension(const std::string& filepath) {
         io::errln("Configuration file must have a valid base name and a '.conf' extension.");
         std::exit(1);
     }
- }
+}
 
- static void readFileContent(std::string& configFileContent, const std::string& configFilePath) {
+static void readFileContent(std::string& configFileContent, const std::string& configFilePath) {
     if (access(configFilePath.c_str(), F_OK) != 0) {
         io::errln("Configuration file does not exist: " + configFilePath);
         std::exit(1);
@@ -67,7 +67,7 @@ static void checkFileExtension(const std::string& filepath) {
     std::ostringstream oss;
     oss << file.rdbuf();
     configFileContent = oss.str();
- }
+}
 
 int main(int argc, char **argv)
 {
