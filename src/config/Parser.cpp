@@ -20,6 +20,20 @@ namespace conf {
     
     Parser::~Parser() {}
 
+    bool Parser::isAtEnd() const {
+        return (_pos >= _tokens.size() || _tokens.at(_pos).type == TOKEN_EOF);
+    }
+
+    const Token& Parser::peek() const {
+        if (isAtEnd()) return(_tokens.back());
+        return (_tokens.at(_pos));
+    }
+
+    const Token& Parser::advance() {
+        if (!isAtEnd()) _pos++;
+        return (_tokens.at(_pos - 1));
+    }
+
     Parser::SyntaxError::SyntaxError (const std::string& errorMessage) : std::runtime_error(errorMessage) {}
 }
 

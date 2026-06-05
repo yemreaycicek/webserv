@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-06 / 01:25:37
+ * @ Modified time: 2026-06-06 / 01:35:21
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -26,6 +26,10 @@ namespace conf {
             std::size_t _pos;
 
             Parser();
+
+            bool isAtEnd() const;
+            const Token& peek() const;
+            const Token& advance();
 
             class SyntaxError : public std::runtime_error {
                 public:
