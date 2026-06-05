@@ -2,6 +2,7 @@ NAME      = webserv
 CXX       = c++
 CXXFLAGS  = -Wall -Wextra -Werror -std=c++98 -I$(INC_DIR)
 
+
 RM        = rm -rf
 MKDIR     = mkdir -p
 
@@ -30,5 +31,8 @@ fclean: clean
 	$(RM) $(BIN_DIR)
 
 re: fclean all
+
+debug: CXXFLAGS += -DDEBUG
+debug: re
 
 .PHONY: all clean fclean re
