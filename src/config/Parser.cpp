@@ -1,5 +1,6 @@
 #include "config/Parser.hpp"
 
+#include <stdexcept>
 #include <vector>
 
 #include "config/Lexer.hpp"
@@ -19,5 +20,7 @@ namespace conf {
     }
     
     Parser::~Parser() {}
+
+    Parser::SyntaxError::SyntaxError (const std::string& errorMessage) : std::runtime_error(errorMessage) {}
 }
 
