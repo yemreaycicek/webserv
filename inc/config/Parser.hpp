@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-06 / 01:35:21
+ * @ Modified time: 2026-06-06 / 01:46:59
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -30,6 +30,7 @@ namespace conf {
             bool isAtEnd() const;
             const Token& peek() const;
             const Token& advance();
+            void expect(TokenType type, const std::string& errorMessage);
 
             class SyntaxError : public std::runtime_error {
                 public:
