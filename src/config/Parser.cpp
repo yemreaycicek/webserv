@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-06 / 01:48:21
+ * @ Modified time: 2026-06-06 / 04:49:59
  */
 
 #include "config/Parser.hpp"
@@ -48,6 +48,28 @@ namespace conf {
             std::string errorMessage = "Syntax Error: " + message + " (Found: '" + peek().value + "')";
             throw SyntaxError(errorMessage);
         }
+    }
+
+    ServerNode Parser::parseServerNode() {
+        ServerNode server;
+        return (server);
+    }
+
+    std::vector<ServerNode> Parser::parse() {
+        std::vector<ServerNode> servers;
+        _pos = 0;
+
+        while (!isAtEnd()) {
+            Token current = advance();
+
+            if (current.type == TOKEN_WORD && current.value == "server") {
+                expect(TOKEN_OPENING_BRACE, "Expected '{' after 'server' declaration");
+                servers.push_back(parseServerNode());
+            } else {
+                throw SyntaxError("Expected 'server' block but found '" + current.value + "'");
+            }
+        }
+        return (servers);
     }
 
     Parser::SyntaxError::SyntaxError (const std::string& errorMessage) : std::runtime_error(errorMessage) {}
