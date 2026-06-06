@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-06 / 04:47:42
+ * @ Modified time: 2026-06-06 / 05:35:37
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "config/ConfigNodes.hpp"
+#include "config/ConfigBlocks.hpp"
 #include "config/Lexer.hpp"
 
 namespace conf {
@@ -22,7 +22,7 @@ namespace conf {
             Parser& operator=(const Parser& other);
             ~Parser();
 
-            std::vector<ServerNode> parse();
+            std::vector<ServerBlock> parse();
     
         private:
             std::vector<Token> _tokens;
@@ -35,7 +35,7 @@ namespace conf {
             const Token& advance();
             void expect(TokenType type, const std::string& errorMessage);
 
-            ServerNode parseServerNode();
+            ServerBlock parseServerBlock();
 
             class SyntaxError : public std::runtime_error {
                 public:

@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-06 / 04:49:59
+ * @ Modified time: 2026-06-06 / 05:35:07
  */
 
 #include "config/Parser.hpp"
@@ -50,13 +50,13 @@ namespace conf {
         }
     }
 
-    ServerNode Parser::parseServerNode() {
-        ServerNode server;
+    ServerBlock Parser::parseServerBlock() {
+        ServerBlock server;
         return (server);
     }
 
-    std::vector<ServerNode> Parser::parse() {
-        std::vector<ServerNode> servers;
+    std::vector<ServerBlock> Parser::parse() {
+        std::vector<ServerBlock> servers;
         _pos = 0;
 
         while (!isAtEnd()) {
@@ -64,7 +64,7 @@ namespace conf {
 
             if (current.type == TOKEN_WORD && current.value == "server") {
                 expect(TOKEN_OPENING_BRACE, "Expected '{' after 'server' declaration");
-                servers.push_back(parseServerNode());
+                servers.push_back(parseServerBlock());
             } else {
                 throw SyntaxError("Expected 'server' block but found '" + current.value + "'");
             }
