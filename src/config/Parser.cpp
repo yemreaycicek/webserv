@@ -2,12 +2,14 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-06 / 05:35:07
+ * @ Modified time: 2026-06-06 / 05:37:59
  */
 
+#include "config/ConfigBlocks.hpp"
 #include "config/Parser.hpp"
 
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "config/Lexer.hpp"
