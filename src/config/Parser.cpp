@@ -2,12 +2,13 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-08 / 11:33:05
+ * @ Modified time: 2026-06-08 / 11:48:03
  */
 
 #include "config/ConfigBlocks.hpp"
 #include "config/Parser.hpp"
 
+#include <cstdlib>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -57,8 +58,23 @@ namespace conf {
         return (location);
     }
 
-    void Parser::parseDirective(const ServerBlock& server) {
-        (void)server;
+    void Parser::parseDirective(ServerBlock& server) {
+        Token directiveName = advance();
+
+        if (directiveName.value == "listen") {
+            server.listen = advance().value;
+        } else if (directiveName.value == "client_max_body_size") {
+            server.clientMaxBodySize = advance().value;
+        } else if (directiveName.value == "error_page") {
+            long long statusCode = std::atoll(advance().value.c_str());
+            std::string errorPagePath = advance().value;
+            server.errorPages[statusCode] = errorPagePath;
+        } else {
+            while (!isAtEnd() && peek().type != TOKEN_SEMICOLON) {
+                advance();
+            }
+        }
+        expect(TOKEN_SEMICOLON, "Expected ';' after directive '" + directiveName.value + "'");
     }
 
     ServerBlock Parser::parseServerBlock() {
