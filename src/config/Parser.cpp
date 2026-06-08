@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-08 / 11:53:07
+ * @ Modified time: 2026-06-08 / 12:21:54
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -58,7 +58,7 @@ namespace conf {
         return (location);
     }
 
-    void Parser::parseDirective(ServerBlock& server) {
+    void Parser::parseServerDirective(ServerBlock& server) {
         Token directiveName = advance();
 
         if (directiveName.value == "listen") {
@@ -89,7 +89,7 @@ namespace conf {
                 advance();
                 server.locations.push_back(parseLocationBlock());
             } else if (current.type == TOKEN_WORD) {
-                parseDirective(server);
+                parseServerDirective(server);
             } else {
                 throw SyntaxError("Unexpected token in server block: '" + current.value + "'");
             }
