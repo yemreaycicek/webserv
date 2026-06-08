@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-08 / 12:06:27
+ * @ Modified time: 2026-06-08 / 12:24:20
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -38,6 +38,7 @@ namespace conf {
             LocationBlock parseLocationBlock();
             ServerBlock parseServerBlock();
             void parseServerDirective(ServerBlock& server);
+            void parseLocationDirective(LocationBlock& location);
 
             class SyntaxError : public std::runtime_error {
                 public:

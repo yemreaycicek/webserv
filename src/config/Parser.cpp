@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-08 / 12:21:54
+ * @ Modified time: 2026-06-08 / 12:27:59
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -52,9 +52,41 @@ namespace conf {
             throw SyntaxError(errorMessage);
         }
     }
-
+    void Parser::parseLocationDirective(LocationBlock& location) {
+        Token directiveName = advance();
+        
+        if (directiveName.value == "root") {
+            location.root == advance().value;
+        } else if (directiveName.value == "index") {
+            location.index = advance().value;
+        } else if (directiveName.value == "allow_methods") {
+            while (!isAtEnd() && peek().type != TOKEN_SEMICOLON) {
+                location.allowMethods.push_back(advance().value);
+            }
+        } else if (directiveName.value == "autoindex") {
+            location.autoindex = advance().value == "on";
+        } else if (directiveName.value == "return") {
+            location.redirect = advance().value + " " + advance().value;
+        } else if (directiveName.value == "upload_enable") {
+            location.upload_enable = advance().value == "on";
+        } else if (directiveName.value == "upload_store") {
+            location.upload_store = advance().value;
+        } else {
+            while (!isAtEnd() && peek().type != TOKEN_SEMICOLON) {
+                advance();
+            }
+        }
+        expect(TOKEN_SEMICOLON, "Expected ';' after directive '" + directiveName.value + "'");
+    }
     LocationBlock Parser::parseLocationBlock() {
         LocationBlock location;
+        
+        location.path = advance().value;
+        expect(TOKEN_OPENING_BRACE, "Expected '{' after location path");
+
+        while (!isAtEnd() && peek().type != TOKEN_CLOSING_BRACE) {
+            parseLocationDirective(location);
+        }
         return (location);
     }
 
