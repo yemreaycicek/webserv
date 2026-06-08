@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-08 / 11:48:03
+ * @ Modified time: 2026-06-08 / 11:53:07
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -63,6 +63,8 @@ namespace conf {
 
         if (directiveName.value == "listen") {
             server.listen = advance().value;
+        } else if (directiveName.value == "client_header_buffer_size") {
+            server.clientHeaderBufferSize = advance().value;
         } else if (directiveName.value == "client_max_body_size") {
             server.clientMaxBodySize = advance().value;
         } else if (directiveName.value == "error_page") {
