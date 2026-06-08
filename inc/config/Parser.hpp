@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-06 / 05:35:37
+ * @ Modified time: 2026-06-08 / 11:20:02
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -35,7 +35,9 @@ namespace conf {
             const Token& advance();
             void expect(TokenType type, const std::string& errorMessage);
 
+            LocationBlock parseLocationBlock();
             ServerBlock parseServerBlock();
+            void parseDirective(const ServerBlock& server);
 
             class SyntaxError : public std::runtime_error {
                 public:

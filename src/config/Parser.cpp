@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-06 / 05:37:59
+ * @ Modified time: 2026-06-08 / 11:25:24
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -52,8 +52,30 @@ namespace conf {
         }
     }
 
+    LocationBlock Parser::parseLocationBlock() {
+        LocationBlock location;
+        return (location);
+    }
+
+    void Parser::parseDirective(const ServerBlock& server) {
+        (void)server;
+    }
+
     ServerBlock Parser::parseServerBlock() {
         ServerBlock server;
+
+        while (!isAtEnd() && peek().type != TOKEN_CLOSING_BRACE) {
+            Token current = peek();
+
+            if (current.type == TOKEN_WORD && current.value == "location") {
+                advance();
+                server.locations.push_back(parseLocationBlock());
+            } else if (current.type == TOKEN_WORD) {
+                parseDirective(server);
+            } else {
+                throw SyntaxError("Unexpected token in server block: '" + current.value + "'");
+            }
+        }
         return (server);
     }
 
