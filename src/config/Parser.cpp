@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-08 / 11:25:24
+ * @ Modified time: 2026-06-08 / 11:33:05
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -76,6 +76,7 @@ namespace conf {
                 throw SyntaxError("Unexpected token in server block: '" + current.value + "'");
             }
         }
+        expect(TOKEN_CLOSING_BRACE, "Expected '}' to close 'server' block");
         return (server);
     }
 
