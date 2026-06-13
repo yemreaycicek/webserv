@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-08 / 12:24:20
+ * @ Modified time: 2026-06-13 / 12:11:19
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -44,6 +44,12 @@ namespace conf {
                 public:
                     SyntaxError(const std::string& errorMessage);
             };
+
+        #ifdef DEBUG
+            void printServerBlocks(const std::vector<ServerBlock>& servers) const;
+            void printLocationBlock(const LocationBlock& location, const bool isLastLocation) const;
+            std::string joinMethods(const std::vector<std::string>& methods) const;
+        #endif
     };
 }
 
