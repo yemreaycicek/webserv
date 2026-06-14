@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-13 / 12:25:23
+ * @ Modified time: 2026-06-14 / 13:21:18
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -61,7 +61,7 @@ namespace conf {
         Token directiveName = advance();
         
         if (directiveName.value == "root") {
-            location.root == advance().value;
+            location.root = advance().value;
         } else if (directiveName.value == "index") {
             location.index = advance().value;
         } else if (directiveName.value == "allow_methods") {
