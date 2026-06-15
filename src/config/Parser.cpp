@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-15 / 20:22:44
+ * @ Modified time: 2026-06-15 / 20:29:30
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -92,6 +92,7 @@ namespace conf {
         while (!isAtEnd() && peek().type != TOKEN_CLOSING_BRACE) {
             parseLocationDirective(location);
         }
+        expect(TOKEN_CLOSING_BRACE, "Expected '}' to close 'location' block");
         return (location);
     }
 
