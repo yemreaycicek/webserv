@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-14 / 13:21:18
+ * @ Modified time: 2026-06-15 / 20:22:44
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -146,6 +146,9 @@ namespace conf {
                 expect(TOKEN_OPENING_BRACE, "Expected '{' after 'server' declaration");
                 servers.push_back(parseServerBlock());
             } else {
+                #ifdef DEBUG
+                    printServerBlocks(servers);
+                #endif
                 throw SyntaxError("Expected 'server' block but found '" + current.value + "'");
             }
         }

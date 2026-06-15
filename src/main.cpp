@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-03 / 21:17:46
+ * @ Modified time: 2026-06-15 / 20:21:44
  */
 
 #include <unistd.h>
@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "config/Lexer.hpp"
+#include "config/Parser.hpp"
 #include "utils/io.hpp"
 
 static void printUsage() {
@@ -80,5 +81,12 @@ int main(int argc, char **argv)
 
     conf::Lexer lexer;
     std::vector<conf::Token> tokens = lexer.tokenize(configFileContent);
+
+    try {
+        conf::Parser parser(tokens);
+        std::vector<conf::ServerBlock> servers = parser.parse();
+    } catch (const std::runtime_error& e) {
+        io::println(e.what());
+    }
     return (0);
 }
