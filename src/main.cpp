@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-15 / 20:21:44
+ * @ Modified time: 2026-06-15 / 20:35:34
  */
 
 #include <unistd.h>
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     try {
         conf::Parser parser(tokens);
         std::vector<conf::ServerBlock> servers = parser.parse();
-    } catch (const std::runtime_error& e) {
+    } catch (const conf::Parser::SyntaxError& e) {
         io::println(e.what());
     }
     return (0);

@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-13 / 12:11:19
+ * @ Modified time: 2026-06-15 / 20:35:12
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -23,6 +23,11 @@ namespace conf {
             ~Parser();
 
             std::vector<ServerBlock> parse();
+
+            class SyntaxError : public std::runtime_error {
+                public:
+                    SyntaxError(const std::string& errorMessage);
+            };
     
         private:
             std::vector<Token> _tokens;
@@ -39,11 +44,6 @@ namespace conf {
             ServerBlock parseServerBlock();
             void parseServerDirective(ServerBlock& server);
             void parseLocationDirective(LocationBlock& location);
-
-            class SyntaxError : public std::runtime_error {
-                public:
-                    SyntaxError(const std::string& errorMessage);
-            };
 
         #ifdef DEBUG
             void printServerBlocks(const std::vector<ServerBlock>& servers) const;
