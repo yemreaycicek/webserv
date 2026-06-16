@@ -14,7 +14,7 @@
 #include "config/ConfigBlocks.hpp"
 #include "config/Lexer.hpp"
 
-namespace conf {
+namespace config {
     class Parser {
         public:
             Parser(const std::vector<Token>& tokens);

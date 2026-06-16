@@ -16,7 +16,7 @@
     #include <iomanip>
 #endif
 
-namespace conf {
+namespace config {
     Lexer::Lexer() : _pos(0) {}
     Lexer::Lexer(const Lexer& other) : _input(other._input), _pos(other._pos) {}
     
@@ -98,13 +98,13 @@ namespace conf {
     }
 
     #ifdef DEBUG
-        std::string Lexer::getTokenTypeString(conf::TokenType type) const {
+        std::string Lexer::getTokenTypeString(config::TokenType type) const {
             switch(type) {
-                case conf::TOKEN_WORD:          return ("WORD");
-                case conf::TOKEN_OPENING_BRACE: return ("OPENING_BRACE");
-                case conf::TOKEN_CLOSING_BRACE: return ("CLOSING_BRACE");
-                case conf::TOKEN_SEMICOLON:     return ("SEMICOLON");
-                case conf::TOKEN_EOF:           return ("EOF");
+                case config::TOKEN_WORD:          return ("WORD");
+                case config::TOKEN_OPENING_BRACE: return ("OPENING_BRACE");
+                case config::TOKEN_CLOSING_BRACE: return ("CLOSING_BRACE");
+                case config::TOKEN_SEMICOLON:     return ("SEMICOLON");
+                case config::TOKEN_EOF:           return ("EOF");
                 default:                        return ("UNKNOWN");
             }
         }

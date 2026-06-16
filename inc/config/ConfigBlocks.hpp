@@ -12,7 +12,7 @@
 #include <vector>
 #include <map>
 
-namespace conf {
+namespace config {
     struct LocationBlock {
         std::string path;
         std::string root;

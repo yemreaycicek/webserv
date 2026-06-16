@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:08:14
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-05 / 23:35:11
+ * @ Modified time: 2026-06-16 / 22:25:22
  */
 
 #ifndef WEBSERV_CONFIG_LEXER_HPP
@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace conf {
+namespace config {
     enum TokenType {
         TOKEN_WORD,
         TOKEN_OPENING_BRACE,
@@ -46,7 +46,7 @@ namespace conf {
             bool isStructuralChar(char c) const;
 
         #ifdef DEBUG
-            std::string getTokenTypeString(conf::TokenType type) const;
+            std::string getTokenTypeString(config::TokenType type) const;
             void printTokens() const;
         #endif
             

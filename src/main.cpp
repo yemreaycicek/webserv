@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-15 / 20:35:34
+ * @ Modified time: 2026-06-16 / 22:25:50
  */
 
 #include <unistd.h>
@@ -79,13 +79,13 @@ int main(int argc, char **argv)
     checkFileExtension(configFilePath);
     readFileContent(configFileContent, configFilePath);
 
-    conf::Lexer lexer;
-    std::vector<conf::Token> tokens = lexer.tokenize(configFileContent);
+    config::Lexer lexer;
+    std::vector<config::Token> tokens = lexer.tokenize(configFileContent);
 
     try {
-        conf::Parser parser(tokens);
-        std::vector<conf::ServerBlock> servers = parser.parse();
-    } catch (const conf::Parser::SyntaxError& e) {
+        config::Parser parser(tokens);
+        std::vector<config::ServerBlock> servers = parser.parse();
+    } catch (const config::Parser::SyntaxError& e) {
         io::println(e.what());
     }
     return (0);

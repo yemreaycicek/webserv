@@ -20,7 +20,7 @@
     #include <map>
 #endif
 
-namespace conf {
+namespace config {
     Parser::Parser() : _pos(0) {}
     Parser::Parser(const std::vector<Token>& tokens) : _tokens(tokens) {}
     Parser::Parser(const Parser& other) : _tokens(other._tokens), _pos(other._pos) {}
