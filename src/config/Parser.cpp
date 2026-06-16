@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-15 / 20:29:30
+ * @ Modified time: 2026-06-16 / 11:53:20
  */
 
 #include "config/ConfigBlocks.hpp"
@@ -100,7 +100,7 @@ namespace conf {
         Token directiveName = advance();
 
         if (directiveName.value == "listen") {
-            server.listen = advance().value;
+            server.listen.push_back(advance().value);
         } else if (directiveName.value == "client_header_buffer_size") {
             server.clientHeaderBufferSize = advance().value;
         } else if (directiveName.value == "client_max_body_size") {
@@ -201,7 +201,9 @@ namespace conf {
                 std::cout << "ServerBlock [" << i << "]" << std::endl;
                 
                 std::vector<std::string> serverLines;
-                if (!servers[i].listen.empty()) serverLines.push_back("listen: " + servers[i].listen);
+                for (std::size_t j = 0; j < servers[i].listen.size(); ++j) {
+                    serverLines.push_back("listen: " + servers[i].listen[j]);
+                }
                 if (!servers[i].clientHeaderBufferSize.empty()) serverLines.push_back("client_header_buffer_size: " + servers[i].clientHeaderBufferSize);
                 if (!servers[i].clientMaxBodySize.empty()) serverLines.push_back("client_max_body_size: " + servers[i].clientMaxBodySize);
 

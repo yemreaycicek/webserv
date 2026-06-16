@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-05 / 22:15:05
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-08 / 11:52:24
+ * @ Modified time: 2026-06-16 / 11:51:47
  */
 
 #ifndef WEBSERV_CONFIG_CONFIG_BLOCKS_HPP
@@ -28,7 +28,7 @@ namespace conf {
     };
 
     struct ServerBlock {
-        std::string listen;
+        std::vector<std::string> listen;
         std::string clientHeaderBufferSize;
         std::string clientMaxBodySize;
         std::map<std::size_t, std::string> errorPages;
