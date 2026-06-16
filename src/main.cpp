@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-16 / 22:25:50
+ * @ Modified time: 2026-06-16 / 22:37:29
  */
 
 #include <unistd.h>
@@ -86,7 +86,13 @@ int main(int argc, char **argv)
         config::Parser parser(tokens);
         std::vector<config::ServerBlock> servers = parser.parse();
     } catch (const config::Parser::SyntaxError& e) {
+        io::print("Config Error: ");
         io::println(e.what());
+        return (1);
+    } catch (const std::exception& e) {
+        io::print("System Error: ");
+        io::println(e.what());
+        return (1);
     }
     return (0);
 }
