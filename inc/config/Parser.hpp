@@ -2,19 +2,40 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-15 / 20:35:12
+ * @ Modified time: 2026-06-17 / 13:48:56
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
 #define WEBSERV_CONFIG_PARSER_HPP
 
+#include <map>
 #include <stdexcept>
 #include <vector>
 
-#include "config/ConfigBlocks.hpp"
 #include "config/Lexer.hpp"
 
 namespace config {
+    struct LocationBlock {
+        std::string path;
+        std::string root;
+        std::string index;
+        bool autoindex;
+        std::vector<std::string> allowMethods;
+        std::string redirect;
+        bool upload_enable;
+        std::string upload_store;
+
+        LocationBlock() : autoindex(false), upload_enable(false) {}
+    };
+
+    struct ServerBlock {
+        std::vector<std::string> listen;
+        std::string clientHeaderBufferSize;
+        std::string clientMaxBodySize;
+        std::map<std::size_t, std::string> errorPages;
+        std::vector<LocationBlock> locations;
+    };
+
     class Parser {
         public:
             Parser(const std::vector<Token>& tokens);
