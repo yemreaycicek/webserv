@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 14:29:15
+ * @ Modified time: 2026-06-17 / 20:46:58
  */
 
 #include "config/Lexer.hpp"
@@ -24,7 +24,6 @@ namespace config {
         if (this != &other) {
             _input = other._input;
             _pos = other._pos;
-            _tokens = other._tokens;
         }
         return (*this);
     }
@@ -32,8 +31,9 @@ namespace config {
     Lexer::~Lexer() {}
 
     std::vector<Token> Lexer::tokenize(const std::string& input) {
-        _input = input;
+        std::vector<Token> tokens;
 
+        _input = input;
         while (_pos < _input.length()) {
             skipWhitespaceAndComments();
 
@@ -44,13 +44,13 @@ namespace config {
             char c = _input[_pos];
 
             if (c == '{') {
-                addToken(TOKEN_OPENING_BRACE, "{");
+                tokens.push_back(Token(TOKEN_OPENING_BRACE, "{"));
                 _pos++;
             } else if (c == '}') {
-                addToken(TOKEN_CLOSING_BRACE, "}");
+                tokens.push_back(Token(TOKEN_CLOSING_BRACE, "}"));
                 _pos++;
             } else if (c == ';') {
-                addToken(TOKEN_SEMICOLON, ";");
+                tokens.push_back(Token(TOKEN_SEMICOLON, ";"));
                 _pos++;
             } else {
                 std::size_t start = _pos;
@@ -60,20 +60,15 @@ namespace config {
                 }
 
                 std::string word = _input.substr(start, (_pos - start));
-                addToken(TOKEN_WORD, word);
+                tokens.push_back(Token(TOKEN_WORD, word));
             }
         }
-        addToken(TOKEN_EOF, "EOF");
+        tokens.push_back(Token(TOKEN_EOF, "EOF"));
         #ifdef DEBUG
-            config::Debug::printLexer(_tokens);
+            config::Debug::printLexer(tokens);
         #endif
-        return (_tokens);
+        return (tokens);
     }
-
-    void Lexer::addToken(TokenType type, const std::string& value) {
-        _tokens.push_back(Token(type, value));
-    }
-
 
     void Lexer::skipWhitespaceAndComments() {
         while (_pos < _input.length()) {
