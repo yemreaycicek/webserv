@@ -2,96 +2,32 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-16 / 22:37:29
+ * @ Modified time: 2026-06-17 / 13:41:22
  */
 
-#include <unistd.h>
-
-#include <cstdlib>
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
 
 #include "config/Lexer.hpp"
 #include "config/Parser.hpp"
+#include "utils/arg.hpp"
 #include "utils/io.hpp"
-
-static void printUsage() {
-    io::errln("Usage: ./bin/webserv [CONFIGURATION_FILE]...");
-    io::errln("Try './bin/webserv conf/default.conf' for a specific setup.");
-}
-
-static void parseArguments(std::string& configFilePath, const int argc, const char* arg) {
-    if (argc == 1) {
-        configFilePath = "conf/default.conf"; 
-    } else if (argc == 2) {
-        configFilePath = arg;
-    } else {
-        printUsage();
-        std::exit(2);
-    }
-}
-
-static void checkFileExtension(const std::string& filepath) {
-    std::string filename;
-    std::size_t slashPos = filepath.find_last_of('/');
-
-    if (slashPos == std::string::npos) {
-        filename = filepath;
-    } else {
-        filename = filepath.substr(slashPos + 1);
-    }
-
-    if (filename.length() < 6 || filename.substr(filename.length() - 5) != ".conf") {
-        io::errln("Configuration file must have a valid base name and a '.conf' extension.");
-        std::exit(1);
-    }
-}
-
-static void readFileContent(std::string& configFileContent, const std::string& configFilePath) {
-    if (access(configFilePath.c_str(), F_OK) != 0) {
-        io::errln("Configuration file does not exist: " + configFilePath);
-        std::exit(1);
-    }
-    if (access(configFilePath.c_str(), R_OK) != 0) {
-        io::errln("Permission denied to read configuration file: " + configFilePath);
-        std::exit(1);
-    }
-
-    std::ifstream file(configFilePath.c_str());
-    if (!file.is_open()) {
-        io::errln("Could not open configuration file: " + configFilePath);
-        std::exit(1);
-    }
-
-    std::ostringstream oss;
-    oss << file.rdbuf();
-    configFileContent = oss.str();
-}
 
 int main(int argc, char **argv)
 {
-    std::string configFilePath;
-    std::string configFileContent;
-
-    parseArguments(configFilePath, argc, argv[1]);
-    checkFileExtension(configFilePath);
-    readFileContent(configFileContent, configFilePath);
-
-    config::Lexer lexer;
-    std::vector<config::Token> tokens = lexer.tokenize(configFileContent);
-
     try {
+        arg::Parser args(argc, argv);
+
+        config::Lexer lexer;
+        std::vector<config::Token> tokens = lexer.tokenize(args.getConfigFileContent());
+
         config::Parser parser(tokens);
         std::vector<config::ServerBlock> servers = parser.parse();
     } catch (const config::Parser::SyntaxError& e) {
-        io::print("Config Error: ");
-        io::println(e.what());
+        io::println(std::string("Config Error: ") + e.what());
         return (1);
     } catch (const std::exception& e) {
-        io::print("System Error: ");
-        io::println(e.what());
+        io::println(std::string("System Error: ") + e.what());
         return (1);
     }
     return (0);
