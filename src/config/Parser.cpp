@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 20:12:31
+ * @ Modified time: 2026-06-17 / 20:16:58
  */
 
 #include "config/Parser.hpp"
@@ -11,8 +11,6 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-#include "config/Lexer.hpp"
 
 #ifdef DEBUG
   #include "config/Debug.hpp"
