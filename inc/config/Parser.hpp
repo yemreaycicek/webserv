@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 19:17:22
+ * @ Modified time: 2026-06-17 / 19:47:46
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -65,12 +65,6 @@ namespace config {
             ServerBlock parseServerBlock();
             void parseServerDirective(ServerBlock& server);
             void parseLocationDirective(LocationBlock& location);
-
-        #ifdef DEBUG
-            void printServerBlocks(const std::vector<ServerBlock>& servers) const;
-            void printLocationBlock(const LocationBlock& location, const bool isLastLocation) const;
-            std::string joinMethods(const std::vector<std::string>& methods) const;
-        #endif
     };
 }
 

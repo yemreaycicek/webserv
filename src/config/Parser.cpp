@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 19:17:33
+ * @ Modified time: 2026-06-17 / 20:12:31
  */
 
 #include "config/Parser.hpp"
@@ -15,8 +15,7 @@
 #include "config/Lexer.hpp"
 
 #ifdef DEBUG
-    #include <iostream>
-    #include <map>
+  #include "config/Debug.hpp"
 #endif
 
 namespace config {
@@ -146,92 +145,15 @@ namespace config {
                 expect(TOKEN_OPENING_BRACE, "Expected '{' after 'server' declaration");
                 servers.push_back(parseServerBlock());
             } else {
-                #ifdef DEBUG
-                    printServerBlocks(servers);
-                #endif
                 throw SyntaxError("Expected 'server' block but found '" + current.value + "'");
             }
         }
         #ifdef DEBUG
-            printServerBlocks(servers);
+            config::Debug::printParser(servers);
         #endif
         return (servers);
     }
 
     Parser::SyntaxError::SyntaxError (const std::string& errorMessage) : std::runtime_error(errorMessage) {}
-
-    #ifdef DEBUG
-        std::string Parser::joinMethods(const std::vector<std::string>& methods) const {
-            std::string res;
-            for (size_t i = 0; i < methods.size(); ++i) {
-                res += methods[i];
-                if (i < methods.size() - 1) res += ", ";
-            }
-            return res;
-        }
-
-        void Parser::printLocationBlock(const LocationBlock& location, const bool isLastLocation) const {
-            std::string prefix = isLastLocation ? "    " : "│   ";
-
-            std::cout << (isLastLocation ? "└── " : "├── ") << "Location: '" << location.path << "'" << std::endl;
-            
-            std::vector<std::string> lines;
-            if (!location.root.empty()) lines.push_back("root: " + location.root);
-            if (!location.index.empty()) lines.push_back("index: " + location.index);
-            lines.push_back(std::string("autoindex: ") + (location.autoindex ? "on" : "off"));
-            if (!location.redirect.empty()) lines.push_back("return: " + location.redirect);
-            
-            if (location.upload_enable) {
-                lines.push_back("upload_enable: on");
-                if (!location.upload_store.empty()) lines.push_back("upload_store: " + location.upload_store);
-            }
-            if (!location.allowMethods.empty()) lines.push_back("allow_methods: " + joinMethods(location.allowMethods));
-
-            for (size_t i = 0; i < lines.size(); ++i) {
-                bool isLastLine = (i == lines.size() - 1);
-                std::cout << prefix << (isLastLine ? "└── " : "├── ") << lines[i] << std::endl;
-            }
-        }
-
-        void Parser::printServerBlocks(const std::vector<ServerBlock>& servers) const {
-            std::cout << std::endl << "--- PARSER OUTPUT ---" << std::endl;
-
-            for (std::size_t i = 0; i < servers.size(); ++i) {
-                std::cout << "ServerBlock [" << i << "]" << std::endl;
-                
-                std::vector<std::string> serverLines;
-                for (std::size_t j = 0; j < servers[i].listen.size(); ++j) {
-                    serverLines.push_back("listen: " + servers[i].listen[j]);
-                }
-                if (!servers[i].clientHeaderBufferSize.empty()) serverLines.push_back("client_header_buffer_size: " + servers[i].clientHeaderBufferSize);
-                if (!servers[i].clientMaxBodySize.empty()) serverLines.push_back("client_max_body_size: " + servers[i].clientMaxBodySize);
-
-                for (std::size_t j = 0; j < serverLines.size(); ++j) {
-                    bool isAbsolutelyLast = (servers[i].errorPages.empty() && servers[i].locations.empty() && j == serverLines.size() - 1);
-                    std::cout << (isAbsolutelyLast ? "└── " : "├── ") << serverLines[j] << std::endl;
-                }
-
-                if (!servers[i].errorPages.empty()) {
-                    bool noLocations = servers[i].locations.empty();
-                    std::cout << (noLocations ? "└── " : "├── ") << "error_pages: " << std::endl;
-                    std::string errPrefix = noLocations ? "    " : "│   ";
-                    
-                    std::size_t errCount = 0;
-                    for (std::map<std::size_t, std::string>::const_iterator it = servers[i].errorPages.begin(); 
-                            it != servers[i].errorPages.end(); ++it, ++errCount) {
-                        bool isLastError = (errCount == servers[i].errorPages.size() - 1);
-                        std::cout << errPrefix << (isLastError ? "└── " : "├── ") << it->first << " -> " << it->second << std::endl;
-                    }
-                }
-
-                for (size_t j = 0; j < servers[i].locations.size(); j++) {
-                    bool isLastLoc = (j == servers[i].locations.size() - 1);
-                    printLocationBlock(servers[i].locations[j], isLastLoc);
-                }
-            }
-            std::cout << "-----------------------";
-            std::cout << std::endl << std::endl;
-        }
-    #endif
 }
 

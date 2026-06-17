@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-17 / 14:02:31
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 17:50:36
+ * @ Modified time: 2026-06-17 / 19:55:14
  */
 
 #include "config/Debug.hpp"
@@ -10,12 +10,20 @@
 #include <vector>
 
 #include "utils/io.hpp"
+#include "utils/str.hpp"
 
 namespace config {
     void Debug::printLexer(const std::vector<config::Token>& tokens) {
         for (std::vector<config::Token>::const_iterator it = tokens.begin(); it != tokens.end(); it++) {
             io::println(io::padRight(getTokenType(it->type), 13) + " → '" + it->value + "'");
         }
+    }
+
+    void Debug::printParser(const std::vector<config::ServerBlock>& servers) {
+        for (std::size_t i = 0; i < servers.size(); i++) {
+            printServerBlock(servers.at(i), i);
+        }
+        
     }
     
     std::string Debug::getTokenType(config::TokenType type) {
@@ -32,6 +40,90 @@ namespace config {
                 return ("EOF");
             default:
                 return ("UNKNOWN");
+        }
+    }
+
+    std::string Debug::joinMethods(const std::vector<std::string>& methods) {
+        std::string ret;
+        
+        for (std::size_t i = 0; i < methods.size(); i++) {
+            ret += methods.at(i);
+            if (i < methods.size() - 1) {
+                ret += ", ";
+            }
+            return (ret);
+        }
+        return ("");
+    }
+
+    void Debug::printServerBlock(const config::ServerBlock& server, std::size_t index) {
+        io::println("Server [" + str::to_string(index + 1) + "]");
+
+        std::vector<std::string> serverLines;
+        for (std::size_t i = 0; i < server.listen.size(); i++) {
+            serverLines.push_back("listen: " + server.listen.at(i));
+        }
+        if (!server.clientHeaderBufferSize.empty()) {
+            serverLines.push_back("client_header_buffer_size: " + server.clientHeaderBufferSize);
+        }
+        if (!server.clientMaxBodySize.empty()) {
+            serverLines.push_back("client_max_body_size: " + server.clientMaxBodySize);
+        }
+
+        for (size_t i = 0; i < serverLines.size(); i++) {
+            bool isAbsolutelyLast = (server.errorPages.empty() && server.locations.empty() && i == serverLines.size() - 1);
+            io::println((isAbsolutelyLast ? "└── " : "├── ") + serverLines.at(i));
+        }
+
+        if (!server.errorPages.empty()) {
+            bool hasLocations = server.locations.empty();
+            io::println((hasLocations ? "└── " : "├── ") + std::string("error_pages: "));
+            std::string errorPrefix = (hasLocations ? "    " : "│   ");
+
+            std::size_t errorCount = 0;
+            for (std::map<std::size_t, std::string>::const_iterator it = server.errorPages.begin(); it != server.errorPages.end(); it++, errorCount++) {
+                bool isLastError = (errorCount == server.errorPages.size() - 1);
+                io::println(errorPrefix + (isLastError ? "└── " : "├── ") + str::to_string(it->first) + " → " + it->second);   
+            }
+        }
+        
+        for (std::size_t i = 0; i < server.locations.size(); i++) {
+            bool isLastLocation = (i == server.locations.size() - 1);
+            printLocationBlock(server.locations.at(i), isLastLocation);
+        }
+    }
+
+    void Debug::printLocationBlock(const config::LocationBlock& location, bool isLastLocation) {
+        std::string prefix = (isLastLocation ? "    " : "│   ");
+
+        io::println((isLastLocation ? "└── " : "├── ") + std::string("Location: '") + location.path + std::string("'"));
+
+        std::vector<std::string> locationLines;
+        if (!location.root.empty()) {
+            locationLines.push_back("root: " + location.root);
+        }
+        if (!location.index.empty()) {
+            locationLines.push_back("index: " + location.index);
+        }
+        if (location.autoindex) {
+            locationLines.push_back(std::string("autoindex: ") + (location.autoindex ? "on" : "off"));
+        }
+        if (!location.redirect.empty()) {
+            locationLines.push_back("return: " + location.redirect);
+        }
+        if (location.uploadEnable) {
+            locationLines.push_back("upload_enable: on");
+            if (!location.uploadStore.empty()) {
+                locationLines.push_back("upload_store: " + location.uploadStore);
+            }
+        }
+        if (!location.allowMethods.empty()) {
+            locationLines.push_back("allow_methods: " + joinMethods(location.allowMethods));
+        }
+
+        for (std::size_t i = 0; i < locationLines.size(); i++) {
+            bool isLastLine = (i == locationLines.size() - 1);
+            io::println(prefix + (isLastLine ? "└── " : "├── ") + locationLines.at(i));
         }
     }
 }
