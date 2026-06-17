@@ -11,7 +11,11 @@ INC_DIR   = inc
 BUILD_DIR = build
 BIN_DIR   = bin
 
-SRCS      = $(shell find $(SRC_DIR) -name '*.cpp')
+SRCS      = $(shell find $(SRC_DIR) -name '*.cpp' ! -name 'Debug.cpp')
+ifeq ($(MAKECMDGOALS),debug)
+	SRCS += $(SRC_DIR)/config/Debug.cpp
+endif
+
 OBJS      = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
 all: $(BIN_DIR)/$(NAME)

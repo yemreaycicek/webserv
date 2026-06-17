@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 14:20:30
+ * @ Modified time: 2026-06-17 / 14:29:15
  */
 
 #include "config/Lexer.hpp"
@@ -11,6 +11,10 @@
 #include <string>
 #include <vector>
 #include <iostream>
+
+#ifdef DEBUG
+  #include "config/Debug.hpp"
+#endif
 
 namespace config {
     Lexer::Lexer() : _pos(0) {}
@@ -60,6 +64,9 @@ namespace config {
             }
         }
         addToken(TOKEN_EOF, "EOF");
+        #ifdef DEBUG
+            config::Debug::printLexer(_tokens);
+        #endif
         return (_tokens);
     }
 
