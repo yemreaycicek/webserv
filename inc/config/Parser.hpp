@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 13:48:56
+ * @ Modified time: 2026-06-17 / 19:17:22
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -22,10 +22,10 @@ namespace config {
         bool autoindex;
         std::vector<std::string> allowMethods;
         std::string redirect;
-        bool upload_enable;
-        std::string upload_store;
+        bool uploadEnable;
+        std::string uploadStore;
 
-        LocationBlock() : autoindex(false), upload_enable(false) {}
+        LocationBlock() : autoindex(false), uploadEnable(false) {}
     };
 
     struct ServerBlock {

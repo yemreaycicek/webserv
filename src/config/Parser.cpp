@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 13:48:23
+ * @ Modified time: 2026-06-17 / 19:17:33
  */
 
 #include "config/Parser.hpp"
@@ -72,9 +72,9 @@ namespace config {
         } else if (directiveName.value == "return") {
             location.redirect = advance().value + " " + advance().value;
         } else if (directiveName.value == "upload_enable") {
-            location.upload_enable = advance().value == "on";
+            location.uploadEnable = advance().value == "on";
         } else if (directiveName.value == "upload_store") {
-            location.upload_store = advance().value;
+            location.uploadStore = advance().value;
         } else {
             while (!isAtEnd() && peek().type != TOKEN_SEMICOLON) {
                 advance();
