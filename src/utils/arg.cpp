@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-16 / 22:38:38
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 13:39:45
+ * @ Modified time: 2026-06-17 / 20:37:12
  */
 
 #include "utils/arg.hpp"
@@ -92,6 +92,7 @@ namespace arg {
 
         std::ostringstream oss;
         oss << file.rdbuf();
+        file.close();
         _configFileContent = oss.str();
     }
 }
