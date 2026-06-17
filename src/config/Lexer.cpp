@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 20:46:58
+ * @ Modified time: 2026-06-17 / 20:55:31
  */
 
 #include "config/Lexer.hpp"
@@ -10,7 +10,6 @@
 #include <cctype>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #ifdef DEBUG
   #include "config/Debug.hpp"
