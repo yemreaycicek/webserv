@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-05 / 23:39:06
+ * @ Modified time: 2026-06-17 / 14:20:30
  */
 
 #include "config/Lexer.hpp"
@@ -11,10 +11,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-
-#ifdef DEBUG
-    #include <iomanip>
-#endif
 
 namespace config {
     Lexer::Lexer() : _pos(0) {}
@@ -64,9 +60,6 @@ namespace config {
             }
         }
         addToken(TOKEN_EOF, "EOF");
-        #ifdef DEBUG
-            printTokens();
-        #endif
         return (_tokens);
     }
 
@@ -96,25 +89,4 @@ namespace config {
     bool Lexer::isStructuralChar(char c) const {
         return (c == '{' || c == '}' || c == ';');
     }
-
-    #ifdef DEBUG
-        std::string Lexer::getTokenTypeString(config::TokenType type) const {
-            switch(type) {
-                case config::TOKEN_WORD:          return ("WORD");
-                case config::TOKEN_OPENING_BRACE: return ("OPENING_BRACE");
-                case config::TOKEN_CLOSING_BRACE: return ("CLOSING_BRACE");
-                case config::TOKEN_SEMICOLON:     return ("SEMICOLON");
-                case config::TOKEN_EOF:           return ("EOF");
-                default:                        return ("UNKNOWN");
-            }
-        }
-    
-        void Lexer::printTokens() const {
-            std::cout << "--- LEXER OUTPUT ---" << std::endl;
-            for (std::vector<Token>::const_iterator it = _tokens.begin(); it != _tokens.end(); ++it) {
-                std::cout << std::left << std::setw(13) << getTokenTypeString(it->type) << " → '" << it->value << "'" << std::endl;
-            }
-            std::cout << "--------------------" << std::endl;
-        }
-    #endif
 }

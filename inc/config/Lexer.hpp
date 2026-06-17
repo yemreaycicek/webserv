@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:08:14
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-16 / 22:25:22
+ * @ Modified time: 2026-06-17 / 14:20:58
  */
 
 #ifndef WEBSERV_CONFIG_LEXER_HPP
@@ -44,12 +44,6 @@ namespace config {
             void addToken(TokenType type, const std::string& value);
             void skipWhitespaceAndComments();
             bool isStructuralChar(char c) const;
-
-        #ifdef DEBUG
-            std::string getTokenTypeString(config::TokenType type) const;
-            void printTokens() const;
-        #endif
-            
     };
 }
 
