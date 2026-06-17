@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 23:29:02
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 14:17:17
+ * @ Modified time: 2026-06-17 / 14:51:51
  */
 
 #include "utils/io.hpp"
@@ -10,6 +10,11 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+
+#ifdef DEBUG
+  #include <iomanip>
+  #include <sstream>
+#endif
 
 void io::print(const std::string& message) {
     std::cout << message;
@@ -40,3 +45,11 @@ std::string io::input(const std::string& prompt) {
     }
     return (input);
 }
+
+#ifdef DEBUG
+    std::string io::padRight(const std::string& str, std::size_t width) {
+        std::ostringstream oss;
+        oss << std::left << std::setw(width) << str;
+        return (oss.str());
+    }
+#endif
