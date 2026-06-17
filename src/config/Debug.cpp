@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-17 / 14:02:31
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 19:55:14
+ * @ Modified time: 2026-06-17 / 21:08:43
  */
 
 #include "config/Debug.hpp"
@@ -45,15 +45,13 @@ namespace config {
 
     std::string Debug::joinMethods(const std::vector<std::string>& methods) {
         std::string ret;
-        
         for (std::size_t i = 0; i < methods.size(); i++) {
             ret += methods.at(i);
             if (i < methods.size() - 1) {
                 ret += ", ";
             }
-            return (ret);
         }
-        return ("");
+        return (ret);
     }
 
     void Debug::printServerBlock(const config::ServerBlock& server, std::size_t index) {
