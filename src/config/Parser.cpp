@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 20:16:58
+ * @ Modified time: 2026-06-17 / 20:28:19
  */
 
 #include "config/Parser.hpp"
@@ -136,15 +136,22 @@ namespace config {
         std::vector<ServerBlock> servers;
         _pos = 0;
 
-        while (!isAtEnd()) {
-            Token current = advance();
-
-            if (current.type == TOKEN_WORD && current.value == "server") {
-                expect(TOKEN_OPENING_BRACE, "Expected '{' after 'server' declaration");
-                servers.push_back(parseServerBlock());
-            } else {
-                throw SyntaxError("Expected 'server' block but found '" + current.value + "'");
+        try {
+            while (!isAtEnd()) {
+                Token current = advance();
+    
+                if (current.type == TOKEN_WORD && current.value == "server") {
+                    expect(TOKEN_OPENING_BRACE, "Expected '{' after 'server' declaration");
+                    servers.push_back(parseServerBlock());
+                } else {
+                    throw SyntaxError("Expected 'server' block but found '" + current.value + "'");
+                }
             }
+        } catch (const SyntaxError& e) {
+            #ifdef DEBUG
+                config::Debug::printParser(servers);
+            #endif
+            throw;
         }
         #ifdef DEBUG
             config::Debug::printParser(servers);
