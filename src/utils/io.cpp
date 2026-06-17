@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 23:29:02
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-02 / 14:25:36
+ * @ Modified time: 2026-06-17 / 14:17:17
  */
 
 #include "utils/io.hpp"
@@ -25,6 +25,10 @@ void io::err(const std::string& message) {
 
 void io::errln(const std::string& message) {
     std::cerr << message << std::endl;
+}
+
+void io::newline() {
+    std::cout << std::endl;
 }
 
 std::string io::input(const std::string& prompt) {
