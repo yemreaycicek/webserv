@@ -2,11 +2,12 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-16 / 22:38:38
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 20:37:12
+ * @ Modified time: 2026-06-18 / 18:37:30
  */
 
 #include "utils/arg.hpp"
 
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <cstdlib>
@@ -78,6 +79,12 @@ namespace arg {
     }
 
     void Parser::readFileContent() {
+        struct stat st;
+        stat(_configFilePath.c_str(), &st);
+
+        if (S_ISDIR(st.st_mode)) {
+            throw std::runtime_error("Configuration path is a directory, not a file: " + _configFilePath);
+        }    
         if (access(_configFilePath.c_str(), F_OK) != 0) {
             throw std::runtime_error("Configuration file does not exist: " + _configFilePath);
         }
