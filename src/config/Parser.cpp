@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 20:28:19
+ * @ Modified time: 2026-06-18 / 18:30:45
  */
 
 #include "config/Parser.hpp"
@@ -18,7 +18,7 @@
 
 namespace config {
     Parser::Parser() : _pos(0) {}
-    Parser::Parser(const std::vector<Token>& tokens) : _tokens(tokens) {}
+    Parser::Parser(const std::vector<Token>& tokens) : _tokens(tokens), _pos(0) {}
     Parser::Parser(const Parser& other) : _tokens(other._tokens), _pos(other._pos) {}
     
     Parser& Parser::operator=(const Parser& other) {
@@ -134,7 +134,6 @@ namespace config {
 
     std::vector<ServerBlock> Parser::parse() {
         std::vector<ServerBlock> servers;
-        _pos = 0;
 
         try {
             while (!isAtEnd()) {
