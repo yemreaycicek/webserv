@@ -1,3 +1,10 @@
+/**
+ * @ Author: yaycicek
+ * @ Create Time: 2026-06-23 / 13:20:59
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-06-23 / 17:52:26
+ */
+
 #include "http/HTTPRequest.hpp"
 
 #include <string>

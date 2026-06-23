@@ -1,3 +1,10 @@
+/**
+ * @ Author: yaycicek
+ * @ Create Time: 2026-06-23 / 16:47:15
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-06-23 / 17:52:16
+ */
+
 #ifndef WEBSERV_HTTP_HTTP_HEADER_HPP
 #define WEBSERV_HTTP_HTTP_HEADER_HPP
 

@@ -1,3 +1,10 @@
+/**
+ * @ Author: yaycicek
+ * @ Create Time: 2026-06-23 / 13:43:04
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-06-23 / 17:52:18
+ */
+
 #ifndef WEBSERV_HTTP_REQUEST_LINE_HPP
 #define WEBSERV_HTTP_REQUEST_LINE_HPP
 

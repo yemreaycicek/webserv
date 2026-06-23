@@ -1,3 +1,10 @@
+/**
+ * @ Author: yaycicek
+ * @ Create Time: 2026-06-23 / 16:50:32
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-06-23 / 17:52:22
+ */
+
 #include "http/HTTPHeader.hpp"
 
 #include <cstdlib>
