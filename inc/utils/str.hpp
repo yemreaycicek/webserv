@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-02 / 13:56:00
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 19:51:51
+ * @ Modified time: 2026-06-23 / 16:58:57
  */
 
 #ifndef WEBSERV_UTILS_STR_HPP
@@ -20,6 +20,8 @@ namespace str {
         oss << value;
         return (oss.str());
     }
+
+    std::string tolower(const std::string& value);
 }
 
 #endif // WEBSERV_UTILS_STR_HPP
