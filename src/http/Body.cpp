@@ -2,29 +2,29 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-24 / 12:54:35
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:06:55
+ * @ Modified time: 2026-06-24 / 13:15:55
  */
 
-#include "http/HTTPBody.hpp"
+#include "http/Body.hpp"
 
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
 
 namespace http {
-    HTTPBody::HTTPBody() {}
-    HTTPBody::HTTPBody(const HTTPBody& other) : _content(other._content) {}
+    Body::Body() {}
+    Body::Body(const Body& other) : _content(other._content) {}
 
-    HTTPBody& HTTPBody::operator=(const HTTPBody& other) {
+    Body& Body::operator=(const Body& other) {
         if (this != &other) {
             _content = other._content;
         }
         return ((*this));
     }
 
-    HTTPBody::~HTTPBody() {}
+    Body::~Body() {}
 
-    bool HTTPBody::parse(std::string& buffer, std::size_t contentLength, bool isChunked) {
+    bool Body::parse(std::string& buffer, std::size_t contentLength, bool isChunked) {
         if (isChunked) {
             while (true) {
                 std::size_t crlf = buffer.find("\r\n");

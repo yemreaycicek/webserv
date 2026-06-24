@@ -2,21 +2,21 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-24 / 12:54:45
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 12:56:28
+ * @ Modified time: 2026-06-24 / 13:14:09
  */
 
-#ifndef WEBSERV_HTTP_HTTP_BODY_HPP
-#define WEBSERV_HTTP_HTTP_BODY_HPP
+#ifndef WEBSERV_HTTP_BODY_HPP
+#define WEBSERV_HTTP_BODY_HPP
 
 #include <string>
 
 namespace http {
-    class HTTPBody {
+    class Body {
         public:
-            HTTPBody();
-            HTTPBody(const HTTPBody& other);
-            HTTPBody& operator=(const HTTPBody& other);
-            ~HTTPBody();
+            Body();
+            Body(const Body& other);
+            Body& operator=(const Body& other);
+            ~Body();
 
             bool parse(std::string& buffer, std::size_t contentLength, bool isChunked);
 
@@ -27,4 +27,4 @@ namespace http {
     };
 }
 
-#endif // WEBSERV_HTTP_HTTP_BODY_HPP
+#endif // WEBSERV_HTTP_BODY_HPP

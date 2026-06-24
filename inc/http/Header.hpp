@@ -2,22 +2,22 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:47:15
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-23 / 17:52:16
+ * @ Modified time: 2026-06-24 / 13:14:36
  */
 
-#ifndef WEBSERV_HTTP_HTTP_HEADER_HPP
-#define WEBSERV_HTTP_HTTP_HEADER_HPP
+#ifndef WEBSERV_HTTP_HEADER_HPP
+#define WEBSERV_HTTP_HEADER_HPP
 
 #include <map>
 #include <string>
 
 namespace http {
-    class HTTPHeader {
+    class Header {
         public:
-            HTTPHeader();
-            HTTPHeader(const HTTPHeader& other);
-            HTTPHeader& operator=(const HTTPHeader& other);
-            ~HTTPHeader();
+            Header();
+            Header(const Header& other);
+            Header& operator=(const Header& other);
+            ~Header();
 
             bool parse(std::string& buffer);
 
@@ -34,4 +34,4 @@ namespace http {
     };
 }
 
-#endif // WEBSERV_HTTP_HTTP_HEADER_HPP
+#endif // WEBSERV_HTTP_HEADER_HPP

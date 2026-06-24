@@ -2,11 +2,11 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-23 / 13:40:54
+ * @ Modified time: 2026-06-24 / 13:15:24
  */
 
-#ifndef WEBSERV_HTTP_HTPP_REQUEST_HPP
-#define WEBSERV_HTTP_HTPP_REQUEST_HPP
+#ifndef WEBSERV_HTPP_REQUEST_HPP
+#define WEBSERV_HTPP_REQUEST_HPP
 
 #include <map>
 #include <string>
@@ -27,12 +27,12 @@ namespace http {
         STATE_ERROR
     };
 
-    class HTTPRequest {
+    class Request {
         public:
-            HTTPRequest();
-            HTTPRequest(const HTTPRequest& other);
-            HTTPRequest& operator=(const HTTPRequest& other);
-            ~HTTPRequest();
+            Request();
+            Request(const Request& other);
+            Request& operator=(const Request& other);
+            ~Request();
 
             void parse();
     
@@ -51,4 +51,4 @@ namespace http {
     };
 }
 
-#endif // WEBSERV_HTTP_HTPP_REQUEST_HPP
+#endif // WEBSERV_HTTP_REQUEST_HPP

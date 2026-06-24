@@ -2,18 +2,18 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-23 / 17:52:26
+ * @ Modified time: 2026-06-24 / 13:16:25
  */
 
-#include "http/HTTPRequest.hpp"
+#include "http/Request.hpp"
 
 #include <string>
 
 namespace http {
-    HTTPRequest::HTTPRequest() : _state(STATE_REQUEST_LINE), _method(UNKNOWN) {}
-    HTTPRequest::HTTPRequest(const HTTPRequest& other) : _state(other._state), _method(other._method) {}
+    Request::Request() : _state(STATE_REQUEST_LINE), _method(UNKNOWN) {}
+    Request::Request(const Request& other) : _state(other._state), _method(other._method) {}
     
-    HTTPRequest& HTTPRequest::operator=(const HTTPRequest& other) {
+    Request& Request::operator=(const Request& other) {
         if (this != &other) {
             _state = other._state;
             _method = other._method;
@@ -25,9 +25,9 @@ namespace http {
         return ((*this));
     }
     
-    HTTPRequest::~HTTPRequest() {}
+    Request::~Request() {}
 
-    void HTTPRequest::parse() {
+    void Request::parse() {
         while (_state != STATE_COMPLETE && _state != STATE_ERROR) {
             switch (_state) {
                 case STATE_REQUEST_LINE:
@@ -45,15 +45,15 @@ namespace http {
         }
     }
 
-    void HTTPRequest::parseRequestLine() {
+    void Request::parseRequestLine() {
         // ...
     }
 
-        void HTTPRequest::parseHeaders() {
+        void Request::parseHeaders() {
         // ...
     }
 
-        void HTTPRequest::parseBody() {
+        void Request::parseBody() {
         // ...
     }
 }

@@ -2,10 +2,10 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:50:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-23 / 17:52:22
+ * @ Modified time: 2026-06-24 / 13:16:10
  */
 
-#include "http/HTTPHeader.hpp"
+#include "http/Header.hpp"
 
 #include <cstdlib>
 #include <stdexcept>
@@ -14,19 +14,19 @@
 #include "utils/str.hpp"
 
 namespace http {
-    HTTPHeader::HTTPHeader() {}
-    HTTPHeader::HTTPHeader(const HTTPHeader& other) : _fields(other._fields) {}
+    Header::Header() {}
+    Header::Header(const Header& other) : _fields(other._fields) {}
 
-    HTTPHeader& HTTPHeader::operator=(const HTTPHeader& other) {
+    Header& Header::operator=(const Header& other) {
         if (this != &other) {
             _fields = other._fields;
         }
         return ((*this));
     }
 
-    HTTPHeader::~HTTPHeader() {}
+    Header::~Header() {}
 
-    bool HTTPHeader::parse(std::string& buffer) {
+    bool Header::parse(std::string& buffer) {
         while (true) {
             std::size_t crlf = buffer.find("\r\n");
             if (crlf == std::string::npos) {
@@ -42,7 +42,7 @@ namespace http {
         }
     }
 
-    void HTTPHeader::addHeaderLine(const std::string& line) {
+    void Header::addHeaderLine(const std::string& line) {
         std::size_t colon = line.find(' ');
         if (colon == std::string::npos) {
             throw std::runtime_error("400 Bad Request: Malformed header line (missing colon)");
@@ -53,11 +53,11 @@ namespace http {
         _fields[key] = value;
     }
 
-    bool HTTPHeader::has(const std::string& key) const {
+    bool Header::has(const std::string& key) const {
         return (_fields.find(str::tolower(key)) != _fields.end());
     }
 
-    std::string HTTPHeader::get(const std::string& key) const {
+    std::string Header::get(const std::string& key) const {
         std::map<std::string, std::string>::const_iterator it = _fields.find(str::tolower(key));
         if (it == _fields.end()) {
             return ("");
@@ -65,7 +65,7 @@ namespace http {
         return (it->second);
     }
 
-    std::size_t HTTPHeader::getContentLength() const {
+    std::size_t Header::getContentLength() const {
         std::string value = get("content-length");
         if (value.empty()) {
             return (0);
@@ -80,7 +80,7 @@ namespace http {
 
     }
 
-    bool HTTPHeader::isChunked() const {
+    bool Header::isChunked() const {
         std::string transferEncoding = get("transfer-encoding");
         return (transferEncoding.find("chunked") != std::string::npos);
     }
