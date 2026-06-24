@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:16:25
+ * @ Modified time: 2026-06-24 / 13:29:43
  */
 
 #include "http/Request.hpp"
@@ -10,16 +10,15 @@
 #include <string>
 
 namespace http {
-    Request::Request() : _state(STATE_REQUEST_LINE), _method(UNKNOWN) {}
-    Request::Request(const Request& other) : _state(other._state), _method(other._method) {}
+    Request::Request() : _state(STATE_REQUEST_LINE) {}
+    Request::Request(const Request& other) : _state(other._state), _rawBuffer(other._rawBuffer) {}
     
     Request& Request::operator=(const Request& other) {
         if (this != &other) {
             _state = other._state;
-            _method = other._method;
-            _uri = other._uri;
-            _version = other._version;
-            _headers = other._headers;
+            _rawBuffer = other._rawBuffer;
+            _requestLine = other._requestLine;
+            _header = other._header;
             _body = other._body;
         }
         return ((*this));
@@ -27,34 +26,27 @@ namespace http {
     
     Request::~Request() {}
 
-    void Request::parse() {
+    void Request::parse(const std::string& chunk) {
+        _rawBuffer += chunk;
+
         while (_state != STATE_COMPLETE && _state != STATE_ERROR) {
             switch (_state) {
                 case STATE_REQUEST_LINE:
-                    parseRequestLine();
+                    if (_requestLine.parse(_rawBuffer)) _state = STATE_HEADER;
+                    else return;
                     break;
-                case STATE_HEADERS:
-                    parseHeaders();
+                case STATE_HEADER:
+                    if (_header.parse(_rawBuffer)) _state = STATE_BODY;
+                    else return;
                     break;
                 case STATE_BODY:
-                    parseBody();
+                    if (_body.parse(_rawBuffer, _header.getContentLength(), _header.isChunked())) _state = STATE_COMPLETE;
+                    else return;
                     break;
                 default:
-                    break;
+                    return;
             }
         }
-    }
-
-    void Request::parseRequestLine() {
-        // ...
-    }
-
-        void Request::parseHeaders() {
-        // ...
-    }
-
-        void Request::parseBody() {
-        // ...
     }
 }
 

@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:15:24
+ * @ Modified time: 2026-06-24 / 13:28:16
  */
 
 #ifndef WEBSERV_HTPP_REQUEST_HPP
@@ -11,17 +11,14 @@
 #include <map>
 #include <string>
 
-namespace http {
-    enum Method {
-        GET,
-        POST,
-        DELETE,
-        UNKNOWN
-    };
+#include "http/RequestLine.hpp"
+#include "http/Header.hpp"
+#include "http/Body.hpp"
 
+namespace http {
     enum State {
         STATE_REQUEST_LINE,
-        STATE_HEADERS,
+        STATE_HEADER,
         STATE_BODY,
         STATE_COMPLETE,
         STATE_ERROR
@@ -34,20 +31,15 @@ namespace http {
             Request& operator=(const Request& other);
             ~Request();
 
-            void parse();
+            void parse(const std::string& chunk);
     
         private:
             State _state;
+            std::string _rawBuffer;
 
-            Method _method;
-            std::string _uri;
-            std::string _version;
-            std::map<std::string, std::string> _headers;
-            std::string _body;
-
-            void parseRequestLine();
-            void parseHeaders();
-            void parseBody();
+            RequestLine _requestLine;
+            Header _header;
+            Body _body;
     };
 }
 
