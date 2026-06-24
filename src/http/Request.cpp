@@ -2,12 +2,17 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:29:43
+ * @ Modified time: 2026-06-24 / 13:35:55
  */
 
 #include "http/Request.hpp"
 
+#include <stdexcept>
 #include <string>
+
+#ifdef DEBUG
+  #include "utils/io.hpp"
+#endif
 
 namespace http {
     Request::Request() : _state(STATE_REQUEST_LINE) {}
@@ -29,23 +34,30 @@ namespace http {
     void Request::parse(const std::string& chunk) {
         _rawBuffer += chunk;
 
-        while (_state != STATE_COMPLETE && _state != STATE_ERROR) {
-            switch (_state) {
-                case STATE_REQUEST_LINE:
-                    if (_requestLine.parse(_rawBuffer)) _state = STATE_HEADER;
-                    else return;
-                    break;
-                case STATE_HEADER:
-                    if (_header.parse(_rawBuffer)) _state = STATE_BODY;
-                    else return;
-                    break;
-                case STATE_BODY:
-                    if (_body.parse(_rawBuffer, _header.getContentLength(), _header.isChunked())) _state = STATE_COMPLETE;
-                    else return;
-                    break;
-                default:
-                    return;
+        try {
+            while (_state != STATE_COMPLETE && _state != STATE_ERROR) {
+                switch (_state) {
+                    case STATE_REQUEST_LINE:
+                        if (_requestLine.parse(_rawBuffer)) _state = STATE_HEADER;
+                        else return;
+                        break;
+                    case STATE_HEADER:
+                        if (_header.parse(_rawBuffer)) _state = STATE_BODY;
+                        else return;
+                        break;
+                    case STATE_BODY:
+                        if (_body.parse(_rawBuffer, _header.getContentLength(), _header.isChunked())) _state = STATE_COMPLETE;
+                        else return;
+                        break;
+                    default:
+                        return;
+                }
             }
+        } catch (const std::runtime_error& e) {
+            _state = STATE_ERROR;
+            #ifdef DEBUG
+                io::errln(std::string("HTTPRequest 400 Bad Request: ") + e.what());
+            #endif
         }
     }
 }
