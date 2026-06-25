@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:51:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-25 / 14:16:03
+ * @ Modified time: 2026-06-25 / 14:19:35
  */
 
 #include "http/RequestLine.hpp"
@@ -58,7 +58,7 @@ namespace http {
         if (_version.find(' ') == std::string::npos) {
             throw http::Exception(http::status::BAD_REQUEST, "Trailing garbage in request line");
         }
-        if (_version != "HTTP/1.1" || _version != "HTTP/1.0") {
+        if (_version != "HTTP/1.1" && _version != "HTTP/1.0") {
             throw http::Exception(http::status::HTTP_VERSION_NOT_SUPPORTED, _version);
         }
 
