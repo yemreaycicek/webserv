@@ -2,13 +2,16 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:51:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-23 / 17:52:28
+ * @ Modified time: 2026-06-25 / 14:16:03
  */
 
 #include "http/RequestLine.hpp"
 
 #include <stdexcept>
 #include <string>
+
+#include "http/Exception.hpp"
+#include "http/Status.hpp"
 
 namespace http {
     RequestLine::RequestLine() : _method(UNKNOWN) {}
@@ -36,27 +39,27 @@ namespace http {
 
         std::size_t firstSpace = line.find(' ');
         if (firstSpace == std::string::npos) {
-            throw std::runtime_error("400 Bad Request: Malformed request line (missing URI)");
+            throw http::Exception(http::status::BAD_REQUEST, "Malformed request line (missing URI)");
         }
         std::size_t secondSpace = line.find(' ', firstSpace + 1);
         if (secondSpace == std::string::npos) {
-            throw std::runtime_error("400 Bad Request: Malformed request line (missing HTTP version)");
+            throw http::Exception(http::status::BAD_REQUEST, "Malformed request line (missing HTTP version)");
         }
         
         std::string methodString = line.substr(0, firstSpace);
         _method = stringToMethod(methodString);
         if (_method == UNKNOWN) {
-            throw std::runtime_error("501 Not Implemented: Unknown HTTP Method '" + methodString + "'");
+            throw http::Exception(http::status::NOT_IMPLEMENTED, "Unknown HTTP Method '" + methodString + "'");
         }
 
         _uri = line.substr(firstSpace + 1, secondSpace - (firstSpace + 1));
 
         _version = line.substr(secondSpace + 1);
         if (_version.find(' ') == std::string::npos) {
-            throw std::runtime_error("400 Bad Request: Trailing garbage in request line");
+            throw http::Exception(http::status::BAD_REQUEST, "Trailing garbage in request line");
         }
         if (_version != "HTTP/1.1" || _version != "HTTP/1.0") {
-            throw std::runtime_error("505 HTTP Version Not Supported: " + _version);
+            throw http::Exception(http::status::HTTP_VERSION_NOT_SUPPORTED, _version);
         }
 
         return (true);

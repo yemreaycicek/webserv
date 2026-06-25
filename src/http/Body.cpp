@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-24 / 12:54:35
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:15:55
+ * @ Modified time: 2026-06-25 / 14:08:12
  */
 
 #include "http/Body.hpp"
@@ -10,6 +10,9 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
+
+#include "http/Exception.hpp"
+#include "http/Status.hpp"
 
 namespace http {
     Body::Body() {}
@@ -36,13 +39,13 @@ namespace http {
                 char *endPtr;
                 std::size_t chunkSize = std::strtoul(hexStr.c_str(), &endPtr, 16);
                 if (endPtr == hexStr.c_str()) {
-                    throw std::runtime_error("400 Bad Request: Invalid chunk size hex");
+                    throw http::Exception(http::status::BAD_REQUEST, "Invalid chunk size hex");
                 }
 
                 if (buffer.length() < crlf + 2 + chunkSize + 2) {
                     return (false);
                 } else if (buffer.substr(crlf + 2 + chunkSize, 2) != "\r\n") {
-                    throw std::runtime_error("400 Bad Request: Malformed chunked body (missing CRLF)");
+                    throw http::Exception(http::status::BAD_REQUEST, "Malformed chunked body (missing CRLF)");
                 }
                 
                 if (chunkSize == 0) {

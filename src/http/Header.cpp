@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:50:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:16:10
+ * @ Modified time: 2026-06-25 / 14:10:31
  */
 
 #include "http/Header.hpp"
@@ -11,6 +11,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "http/Exception.hpp"
+#include "http/Status.hpp"
 #include "utils/str.hpp"
 
 namespace http {
@@ -45,7 +47,7 @@ namespace http {
     void Header::addHeaderLine(const std::string& line) {
         std::size_t colon = line.find(' ');
         if (colon == std::string::npos) {
-            throw std::runtime_error("400 Bad Request: Malformed header line (missing colon)");
+            throw http::Exception(http::status::BAD_REQUEST, "Malformed header line (missing colon)");
         }
 
         std::string key = str::tolower(line.substr(0, colon));
@@ -74,7 +76,7 @@ namespace http {
         char* endPtr;
         std::size_t contentLength = std::strtoul(value.c_str(), &endPtr, 10);
         if ((*endPtr) != '\0') {
-            throw std::runtime_error("400 Bad Request: Invalid Content-Length value");
+            throw http::Exception(http::status::BAD_REQUEST, "Invalid Content-Length value");
         }
         return (contentLength);
 
