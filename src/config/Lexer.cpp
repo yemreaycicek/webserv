@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-02 / 17:31:09
+ * @ Modified time: 2026-07-02 / 17:35:10
  */
 
 #include "config/Lexer.hpp"
@@ -42,14 +42,19 @@ namespace config {
 
             char c = _input[_pos];
 
-            if (c == CHAR_OPENING_BRACE) {
-                addToken(tokens, TOKEN_OPENING_BRACE, "{");
-            } else if (c == CHAR_CLOSING_BRACE) {
-                addToken(tokens, TOKEN_CLOSING_BRACE, "}"); 
-            } else if (c == CHAR_SEMICOLON) {
-                addToken(tokens, TOKEN_SEMICOLON, ";");
-            } else {
-                parseWord(tokens);
+            switch (c) {
+                case CHAR_OPENING_BRACE:
+                    addToken(tokens, TOKEN_OPENING_BRACE, "{");
+                    break;
+                case CHAR_CLOSING_BRACE:
+                    addToken(tokens, TOKEN_CLOSING_BRACE, "}");
+                    break;
+                case CHAR_SEMICOLON:
+                    addToken(tokens, TOKEN_SEMICOLON, ";");
+                    break;
+                default:
+                    parseWord(tokens);
+                    break;
             }
         }
         addToken(tokens, TOKEN_EOF, "EOF");
