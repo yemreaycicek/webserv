@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:08:14
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-02 / 14:18:00
+ * @ Modified time: 2026-07-02 / 16:40:10
  */
 
 #ifndef WEBSERV_CONFIG_LEXER_HPP
@@ -50,6 +50,7 @@ namespace config {
             bool isStructuralChar(char c) const;
 
             void addToken(std::vector<Token>& tokens, const TokenType type, const std::string& value);
+            void parseWord(std::vector<Token>& tokens);
     };
 }
 
