@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-16 / 22:38:38
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-18 / 18:37:30
+ * @ Modified time: 2026-07-02 / 17:46:37
  */
 
 #include "utils/arg.hpp"
@@ -101,5 +101,9 @@ namespace arg {
         oss << file.rdbuf();
         file.close();
         _configFileContent = oss.str();
+
+        if (_configFileContent.empty()) {
+            throw std::runtime_error("Configuration file is empty: " + _configFilePath);
+        }
     }
 }
