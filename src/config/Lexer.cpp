@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-02 / 17:27:52
+ * @ Modified time: 2026-07-02 / 17:31:09
  */
 
 #include "config/Lexer.hpp"
@@ -78,7 +78,7 @@ namespace config {
     }
 
     bool Lexer::isStructuralChar(char c) const {
-        return (c == '{' || c == '}' || c == ';');
+        return (c == CHAR_OPENING_BRACE || c == CHAR_CLOSING_BRACE || c == CHAR_SEMICOLON);
     }
 
     void Lexer::addToken(std::vector<Token>& tokens, const TokenType type, const std::string& value) {
