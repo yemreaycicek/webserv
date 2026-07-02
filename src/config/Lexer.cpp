@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 20:55:31
+ * @ Modified time: 2026-07-02 / 12:22:30
  */
 
 #include "config/Lexer.hpp"
@@ -43,14 +43,11 @@ namespace config {
             char c = _input[_pos];
 
             if (c == '{') {
-                tokens.push_back(Token(TOKEN_OPENING_BRACE, "{"));
-                _pos++;
+                addToken(tokens, TOKEN_OPENING_BRACE, "{");
             } else if (c == '}') {
-                tokens.push_back(Token(TOKEN_CLOSING_BRACE, "}"));
-                _pos++;
+                addToken(tokens, TOKEN_CLOSING_BRACE, "}"); 
             } else if (c == ';') {
-                tokens.push_back(Token(TOKEN_SEMICOLON, ";"));
-                _pos++;
+                addToken(tokens, TOKEN_SEMICOLON, ";");
             } else {
                 std::size_t start = _pos;
 
@@ -89,5 +86,10 @@ namespace config {
 
     bool Lexer::isStructuralChar(char c) const {
         return (c == '{' || c == '}' || c == ';');
+    }
+
+    void Lexer::addToken(std::vector<Token>& tokens, const TokenType type, const std::string& value) {
+        tokens.push_back(Token(type, value));
+        _pos++;
     }
 }
