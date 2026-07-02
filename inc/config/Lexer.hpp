@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:08:14
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-02 / 12:15:54
+ * @ Modified time: 2026-07-02 / 14:18:00
  */
 
 #ifndef WEBSERV_CONFIG_LEXER_HPP
@@ -12,6 +12,12 @@
 #include <vector>
 
 namespace config {
+    enum StructuralChar {
+        CHAR_OPENING_BRACE = '{',
+        CHAR_CLOSING_BRACE = '}',
+        CHAR_SEMICOLON = ';'        
+    };
+
     enum TokenType {
         TOKEN_WORD,
         TOKEN_OPENING_BRACE,

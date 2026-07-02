@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-02 / 12:22:30
+ * @ Modified time: 2026-07-02 / 14:20:32
  */
 
 #include "config/Lexer.hpp"
@@ -42,11 +42,11 @@ namespace config {
 
             char c = _input[_pos];
 
-            if (c == '{') {
+            if (c == CHAR_OPENING_BRACE) {
                 addToken(tokens, TOKEN_OPENING_BRACE, "{");
-            } else if (c == '}') {
+            } else if (c == CHAR_CLOSING_BRACE) {
                 addToken(tokens, TOKEN_CLOSING_BRACE, "}"); 
-            } else if (c == ';') {
+            } else if (c == CHAR_SEMICOLON) {
                 addToken(tokens, TOKEN_SEMICOLON, ";");
             } else {
                 std::size_t start = _pos;
