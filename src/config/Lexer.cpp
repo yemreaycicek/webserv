@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-02 / 14:20:32
+ * @ Modified time: 2026-07-02 / 16:36:57
  */
 
 #include "config/Lexer.hpp"
@@ -59,7 +59,7 @@ namespace config {
                 tokens.push_back(Token(TOKEN_WORD, word));
             }
         }
-        tokens.push_back(Token(TOKEN_EOF, "EOF"));
+        addToken(tokens, TOKEN_EOF, "EOF");
         #ifdef DEBUG
             config::Debug::printLexer(tokens);
         #endif
