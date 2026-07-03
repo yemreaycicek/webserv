@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 19:47:46
+ * @ Modified time: 2026-07-03 / 19:21:06
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -51,20 +51,42 @@ namespace config {
             };
     
         private:
+            typedef void(Parser::*ServerDirectiveHandler)(ServerBlock&);
+            typedef void(Parser::*LocationDirectiveHandler)(LocationBlock&);
+
             std::vector<Token> _tokens;
             std::size_t _pos;
+            std::map<std::string, ServerDirectiveHandler> _serverHandler;
+            std::map<std::string, LocationDirectiveHandler> _locationHandler;
 
             Parser();
+
+            void initHandlers();
+
+            LocationBlock parseLocationBlock();
+            ServerBlock parseServerBlock();
+
+            void parseServerDirective(ServerBlock& server);
+            void parseLocationDirective(LocationBlock& location);
+
+            void parseListen(ServerBlock& server);
+            void parseClientHeaderBufferSize(ServerBlock& server);
+            void parseClientMaxBodySize(ServerBlock& server);
+            void parseErrorPage(ServerBlock& server);
+
+            void parseRoot(LocationBlock& location);
+            void parseIndex(LocationBlock& location);
+            void parseAllowMethods(LocationBlock& location);
+            void parseAutoindex(LocationBlock& location);
+            void parseReturn(LocationBlock& location);
+            void parseUploadEnable(LocationBlock& location);
+            void parseUploadStore(LocationBlock& location);
 
             bool isAtEnd() const;
             const Token& peek() const;
             const Token& advance();
             void expect(TokenType type, const std::string& errorMessage);
 
-            LocationBlock parseLocationBlock();
-            ServerBlock parseServerBlock();
-            void parseServerDirective(ServerBlock& server);
-            void parseLocationDirective(LocationBlock& location);
     };
 }
 
