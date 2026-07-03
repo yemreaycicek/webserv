@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-03 / 15:57:10
+ * @ Modified time: 2026-07-03 / 15:59:29
  */
 
 #include "config/Lexer.hpp"
@@ -34,14 +34,13 @@ namespace config {
 
         _input = input;
         while (_pos < _input.length()) {
-            skipWhitespaceAndComments();
-
             if (_pos >= _input.length()) {
                 break;
             }
 
-            char c = _input[_pos];
+            skipWhitespaceAndComments();
 
+            char c = _input[_pos];
             switch (c) {
                 case CHAR_OPENING_BRACE:
                     addToken(tokens, TOKEN_OPENING_BRACE, "{");
