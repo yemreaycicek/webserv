@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-03 / 15:50:29
+ * @ Modified time: 2026-07-03 / 15:57:10
  */
 
 #include "config/Lexer.hpp"
@@ -68,12 +68,10 @@ namespace config {
         while (_pos < _input.length()) {
             char c = _input[_pos];
 
-            if (c == '\n') {
-                _pos++;
-            } else if (c == ' ' || c == '\t' ||  c == '\r' || c == '\v' || c == '\f') {
+            if (std::isspace(c)) {
                 _pos++;
             } else if (c == '#') {
-                while (_pos < _input.length() && _input[_pos] != '\n') {
+                while (_pos < _input.length() && c != '\n') {
                     _pos++;
                 }
             } else {
