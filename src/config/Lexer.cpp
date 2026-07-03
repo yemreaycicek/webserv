@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-02 / 17:35:10
+ * @ Modified time: 2026-07-03 / 15:50:29
  */
 
 #include "config/Lexer.hpp"
@@ -53,7 +53,7 @@ namespace config {
                     addToken(tokens, TOKEN_SEMICOLON, ";");
                     break;
                 default:
-                    parseWord(tokens);
+                    addToken(tokens, TOKEN_WORD, parseWord());
                     break;
             }
         }
@@ -91,13 +91,12 @@ namespace config {
         _pos += value.length();
     }
 
-    void Lexer::parseWord(std::vector<Token>& tokens) {
+    const std::string Lexer::parseWord() {
         std::size_t len = 0;
 
         while ((_pos + len) < _input.length() && !std::isspace(_input.at(_pos + len)) && !isStructuralChar(_input.at(_pos + len))) {
             len++;
         }
-        std::string word = _input.substr(_pos, len);
-        addToken(tokens, TOKEN_WORD, word);
+        return (_input.substr(_pos, len));
     }
 }
