@@ -2,12 +2,13 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:04:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-04 / 18:31:19
+ * @ Modified time: 2026-07-04 / 18:44:17
  */
 
 #ifndef WEBSERV_CONFIG_ROUTER_HPP
 #define WEBSERV_CONFIG_ROUTER_HPP
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -21,11 +22,18 @@ namespace config {
             Router& operator=(const Router& other);
             ~Router();
 
+            class DuplicateListenError : public std::runtime_error {
+                public:
+                    DuplicateListenError(const std::string& errorMessage);
+            };
+
         private:
             std::vector<ServerBlock> _servers;
             std::map<std::string, const ServerBlock*> _routerMap;
 
             Router();
+
+            void buildMap();
     };
 }
 

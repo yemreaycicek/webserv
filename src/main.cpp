@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-04 / 18:40:07
+ * @ Modified time: 2026-07-04 / 18:51:08
  */
 
 #include <string>
@@ -28,6 +28,9 @@ int main(int argc, char **argv)
         config::Router router(servers);
     } catch (const config::Parser::SyntaxError& e) {
         io::println(std::string("Config Error: ") + e.what());
+        return (1);
+    } catch (const config::Router::DuplicateListenError& e) {
+        io::println(std::string("Routing Error: ") + e.what());
         return (1);
     } catch (const std::exception& e) {
         io::println(std::string("System Error: ") + e.what());
