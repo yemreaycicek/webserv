@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:20:09
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-04 / 18:55:35
+ * @ Modified time: 2026-07-04 / 19:08:13
  */
 
 #include "config/Router.hpp"
@@ -47,5 +47,32 @@ namespace config {
         
     }
 
+    std::vector<std::string> Router::getListenAddresses() const {
+        std::vector<std::string> addresses;
+
+        for (std::map<std::string, const ServerBlock*>::const_iterator it = _routerMap.begin(); it != _routerMap.end(); it++) {
+            addresses.push_back(it->first);
+        }
+        return (addresses);
+    }
+
+    bool Router::hasServerBlock(const std::string& listenAddress) const {
+        return (_routerMap.find(listenAddress) != _routerMap.end());
+    }
+
+    const ServerBlock& Router::getServerBlock(const std::string& listenAddress) const {
+        std::map<std::string, const ServerBlock*>::const_iterator it = _routerMap.begin();
+
+        if (it == _routerMap.end()) {
+            throw ServerNotFoundError("No server block configured for listen address: '" + listenAddress + "'");
+        }
+        return (*(it->second));
+    }
+
+    const std::vector<ServerBlock>& Router::getServers() const {
+        return (_servers);
+    }
+
     Router::DuplicateListenError::DuplicateListenError(const std::string& errorMessage) : std::runtime_error(errorMessage) {}
+    Router::ServerNotFoundError::ServerNotFoundError(const std::string& errorMessage) : std::runtime_error(errorMessage) {}
 }

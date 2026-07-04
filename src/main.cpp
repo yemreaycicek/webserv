@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-04 / 18:51:08
+ * @ Modified time: 2026-07-04 / 19:09:16
  */
 
 #include <string>
@@ -30,6 +30,9 @@ int main(int argc, char **argv)
         io::println(std::string("Config Error: ") + e.what());
         return (1);
     } catch (const config::Router::DuplicateListenError& e) {
+        io::println(std::string("Routing Error: ") + e.what());
+        return (1);
+    } catch (const config::Router::ServerNotFoundError& e) {
         io::println(std::string("Routing Error: ") + e.what());
         return (1);
     } catch (const std::exception& e) {
