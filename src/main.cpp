@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 13:41:22
+ * @ Modified time: 2026-07-04 / 18:40:07
  */
 
 #include <string>
@@ -10,6 +10,7 @@
 
 #include "config/Lexer.hpp"
 #include "config/Parser.hpp"
+#include "config/Router.hpp"
 #include "utils/arg.hpp"
 #include "utils/io.hpp"
 
@@ -23,6 +24,8 @@ int main(int argc, char **argv)
 
         config::Parser parser(tokens);
         std::vector<config::ServerBlock> servers = parser.parse();
+
+        config::Router router(servers);
     } catch (const config::Parser::SyntaxError& e) {
         io::println(std::string("Config Error: ") + e.what());
         return (1);
