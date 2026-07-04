@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:20:09
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-04 / 18:52:59
+ * @ Modified time: 2026-07-04 / 18:55:35
  */
 
 #include "config/Router.hpp"
@@ -17,12 +17,14 @@ namespace config {
     Router::Router(const std::vector<ServerBlock>& servers) : _servers(servers) {
         buildMap();
     }
-    Router::Router(const Router& other) : _servers(other._servers), _routerMap(other._routerMap) {}
+    Router::Router(const Router& other) : _servers(other._servers) {
+        buildMap();
+    }
 
     Router& Router::operator=(const Router& other) {
         if (this != &other) {
             _servers = other._servers;
-            _routerMap = other._routerMap;
+            buildMap();
         }
         return ((*this));
     }
