@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:20:09
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-05 / 13:29:35
+ * @ Modified time: 2026-07-05 / 13:32:39
  */
 
 #include "config/Router.hpp"
@@ -75,7 +75,7 @@ namespace config {
     }
 
     const ServerBlock& Router::getServerBlock(const std::string& listenAddress) const {
-        std::map<std::string, const ServerBlock*>::const_iterator it = _routerMap.begin();
+        std::map<std::string, const ServerBlock*>::const_iterator it = _routerMap.find(listenAddress);
 
         if (it == _routerMap.end()) {
             throw ServerNotFoundError("No server block configured for listen address: '" + listenAddress + "'");
