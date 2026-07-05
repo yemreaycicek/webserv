@@ -2,13 +2,17 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:20:09
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-04 / 19:08:13
+ * @ Modified time: 2026-07-05 / 13:29:35
  */
 
 #include "config/Router.hpp"
 
 #include <string>
 #include <vector>
+
+#ifdef DEBUG
+  #include "config/Debug.hpp"
+#endif
 
 namespace config {
     Router::Router() {
@@ -32,19 +36,29 @@ namespace config {
     Router::~Router() {}
 
     void Router::buildMap() {
-        for (std::size_t i = 0; i < _servers.size(); i++) {
-            for (std::size_t j = 0; j < _servers.at(i).listen.size(); j++) {
-                const std::string& addr = _servers.at(i).listen.at(j);
 
-                if (_routerMap.find(addr) != _routerMap.end()) {
-                    throw DuplicateListenError("Virtual Hosting is disabled! Duplicate listen address found: '" + addr + "'");
-                } else {
-                    _routerMap[addr] = &(_servers.at(i));
+        try {
+            for (std::size_t i = 0; i < _servers.size(); i++) {
+                for (std::size_t j = 0; j < _servers.at(i).listen.size(); j++) {
+                    const std::string& addr = _servers.at(i).listen.at(j);
+    
+                    if (_routerMap.find(addr) != _routerMap.end()) {
+                        throw DuplicateListenError("Virtual Hosting is disabled! Duplicate listen address found: '" + addr + "'");
+                    } else {
+                        _routerMap[addr] = &(_servers.at(i));
+                    }
                 }
+                
             }
-            
+        } catch (...) {
+            #ifdef DEBUG
+                config::Debug::printRouter((*this));
+            #endif
+            throw;
         }
-        
+        #ifdef DEBUG
+            config::Debug::printRouter((*this));
+        #endif
     }
 
     std::vector<std::string> Router::getListenAddresses() const {

@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-17 / 14:02:31
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-17 / 21:08:43
+ * @ Modified time: 2026-07-05 / 13:10:16
  */
 
 #include "config/Debug.hpp"
@@ -24,6 +24,42 @@ namespace config {
             printServerBlock(servers.at(i), i);
         }
         
+    }
+
+    void Debug::printRouter(const config::Router& router) {
+        std::vector<std::string> addresses = router.getListenAddresses();
+        const std::vector<config::ServerBlock>& servers = router.getServers();
+
+        io::println("Router Table [" + str::to_string(addresses.size()) + " Socket(s)]");
+
+        for (std::size_t i = 0; i < addresses.size(); ++i) {
+            bool isLastSocket = (i == addresses.size() - 1);
+            std::string branch = isLastSocket ? "└── " : "├── ";
+            std::string indent = isLastSocket ? "    " : "│   ";
+
+            const std::string& addr = addresses[i];
+            const config::ServerBlock& target = router.getServerBlock(addr);
+
+            std::size_t serverIndex = 0;
+            for (std::size_t s = 0; s < servers.size(); ++s) {
+                if (&target == &servers[s]) {
+                    serverIndex = s + 1;
+                    break;
+                }
+            }
+
+            io::println(branch + "Socket: " + addr);
+            io::println(indent + "├── Routed to: Server [" + str::to_string(serverIndex) + "]");
+
+            std::string locSummary = "";
+            for (std::size_t l = 0; l < target.locations.size(); ++l) {
+                locSummary += "'" + target.locations[l].path + "'";
+                if (l + 1 < target.locations.size()) {
+                    locSummary += ", ";
+                }
+            }
+            io::println(indent + "└── Locations (" + str::to_string(target.locations.size()) + "): " + locSummary);
+        }
     }
     
     std::string Debug::getTokenType(config::TokenType type) {
