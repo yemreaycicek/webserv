@@ -2,11 +2,10 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-04 / 19:09:16
+ * @ Modified time: 2026-07-05 / 13:40:40
  */
 
 #include <string>
-#include <vector>
 
 #include "config/Lexer.hpp"
 #include "config/Parser.hpp"
@@ -17,15 +16,11 @@
 int main(int argc, char **argv)
 {
     try {
-        arg::Parser args(argc, argv);
+        arg::Parser     args(argc, argv);
 
-        config::Lexer lexer;
-        std::vector<config::Token> tokens = lexer.tokenize(args.getConfigFileContent());
-
-        config::Parser parser(tokens);
-        std::vector<config::ServerBlock> servers = parser.parse();
-
-        config::Router router(servers);
+        config::Lexer   lexer;
+        config::Parser  parser(lexer.tokenize(args.getConfigFileContent()));
+        config::Router  router(parser.parse());
     } catch (const config::Parser::SyntaxError& e) {
         io::println(std::string("Config Error: ") + e.what());
         return (1);
