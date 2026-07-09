@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 15:10:05
+ * @ Modified time: 2026-07-09 / 15:46:53
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -76,6 +76,9 @@ namespace config {
             void parseReturn(LocationBlock& location);
             void parseUploadEnable(LocationBlock& location);
             void parseUploadStore(LocationBlock& location);
+            
+            void validateServerBlock(const ServerBlock& server) const;
+            void validateLocationBlock(const LocationBlock& location) const;
 
             bool isAtEnd() const;
             const Token& peek() const;

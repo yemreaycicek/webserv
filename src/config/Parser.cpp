@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 15:32:31
+ * @ Modified time: 2026-07-09 / 15:56:39
  */
 
 #include "config/Parser.hpp"
@@ -95,6 +95,7 @@ namespace config {
             }
         }
         expect(TOKEN_CLOSING_BRACE, "Expected '}' to close 'server' block");
+        validateServerBlock(server);
         return (server);
     }
 
@@ -113,13 +114,14 @@ namespace config {
     LocationBlock Parser::parseLocationBlock() {
         LocationBlock location;
         
-        location.path = advance().value;
+        location.path = consumeWord("location");
         expect(TOKEN_OPENING_BRACE, "Expected '{' after location path");
 
         while (!isAtEnd() && peek().type != TOKEN_CLOSING_BRACE) {
             parseLocationDirective(location);
         }
         expect(TOKEN_CLOSING_BRACE, "Expected '}' to close 'location' block");
+        validateLocationBlock(location);
         return (location);
     }
 
@@ -185,6 +187,18 @@ namespace config {
 
     void Parser::parseUploadStore(LocationBlock& location) {
         location.uploadStore = consumeWord("upload_store");
+    }
+
+    void Parser::validateServerBlock(const ServerBlock& server) const {
+        if (server.listen.empty()) {
+            throw SyntaxError("Server block must contain at least one 'listen' directive!");
+        }
+    }
+
+    void Parser::validateLocationBlock(const LocationBlock& location) const {
+        if (location.path.empty()) {
+            throw SyntaxError("Location block must have a valid path!");
+        }
     }
 
     bool Parser::isAtEnd() const {
