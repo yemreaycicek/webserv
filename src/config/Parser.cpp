@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 14:47:40
+ * @ Modified time: 2026-07-09 / 15:04:58
  */
 
 #include "config/Parser.hpp"
@@ -183,7 +183,7 @@ namespace config {
     }
 
     bool Parser::isAtEnd() const {
-        return (_pos >= _tokens.size() || _tokens.at(_pos).type == TOKEN_EOF || _tokens.at(_pos).value.empty());
+        return (_pos >= _tokens.size() || _tokens.at(_pos).type == TOKEN_EOF);
     }
 
     const Token& Parser::peek() const {
