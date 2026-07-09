@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 15:04:58
+ * @ Modified time: 2026-07-09 / 15:32:31
  */
 
 #include "config/Parser.hpp"
@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifdef DEBUG
@@ -135,51 +136,55 @@ namespace config {
     }
 
     void Parser::parseListen(ServerBlock& server) {
-        server.listen.push_back(advance().value);
+        server.listen.push_back(consumeWord("listen"));
     }
 
     void Parser::parseClientHeaderBufferSize(ServerBlock& server) {
-        server.clientHeaderBufferSize = advance().value;
+        server.clientHeaderBufferSize = consumeWord("client_header_buffer_size");
     }
 
     void Parser::parseClientMaxBodySize(ServerBlock& server) {
-        server.clientMaxBodySize = advance().value;
+        server.clientMaxBodySize = consumeWord("client_max_body_size");
     }
 
     void Parser::parseErrorPage(ServerBlock& server) {
-        long long statusCode = std::atoll(advance().value.c_str());
-        std::string errorPagePath = advance().value;
-        server.errorPages[statusCode] = errorPagePath;
+        std::string line = consumeWord("error_page");
+        long long statusCode = std::atoll(line.c_str());
+        std::string errorPagePath = consumeWord("error_page");
+        server.errorPages.insert(std::make_pair(statusCode, errorPagePath));
     }
 
     void Parser::parseRoot(LocationBlock& location) {
-        location.root = advance().value;
+        location.root = consumeWord("root");
     }
     
     void Parser::parseIndex(LocationBlock& location) {
-        location.index = advance().value;
+        location.index = consumeWord("index");
     }
 
     void Parser::parseAllowMethods(LocationBlock& location) {
+        location.allowMethods.push_back(consumeWord("allow_methods"));
         while (!isAtEnd() && peek().type != TOKEN_SEMICOLON) {
-            location.allowMethods.push_back(advance().value);
+            location.allowMethods.push_back(consumeWord("allow_methods"));
         }
     }
 
     void Parser::parseAutoindex(LocationBlock& location) {
-        location.autoindex = (advance().value == "on");
+        location.autoindex = (consumeWord("autoindex") == "on");
     }
 
     void Parser::parseReturn(LocationBlock& location) {
-        location.redirect = advance().value + " " + advance().value;
+        std::string code = consumeWord("return");
+        std::string url = consumeWord("return");
+        location.redirect = code + " " + url;
     }
 
     void Parser::parseUploadEnable(LocationBlock& location) {
-        location.uploadEnable = (advance().value == "on");
+        location.uploadEnable = (consumeWord("upload_enable") == "on");
     }
 
     void Parser::parseUploadStore(LocationBlock& location) {
-        location.uploadStore = advance().value;
+        location.uploadStore = consumeWord("upload_store");
     }
 
     bool Parser::isAtEnd() const {
@@ -203,6 +208,13 @@ namespace config {
             std::string errorMessage = "Syntax Error: " + message + " (Found: '" + peek().value + "')";
             throw SyntaxError(errorMessage);
         }
+    }
+
+    const std::string Parser::consumeWord(const std::string& directiveName) {
+        if (peek().type != TOKEN_WORD) {
+            throw SyntaxError("Expected argument for directive '" + directiveName + "', but found '" + peek().value + "'");
+        }
+        return (advance().value);
     }
 
     Parser::SyntaxError::SyntaxError (const std::string& message) : Exception(message) {}

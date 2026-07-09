@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 14:45:18
+ * @ Modified time: 2026-07-09 / 15:10:05
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -81,6 +81,8 @@ namespace config {
             const Token& peek() const;
             const Token& advance();
             void expect(TokenType type, const std::string& errorMessage);
+
+            const std::string consumeWord(const std::string& directiveName);
 
             class SyntaxError : public Exception {
                 public:
