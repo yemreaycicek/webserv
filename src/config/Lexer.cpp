@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-03 / 15:59:29
+ * @ Modified time: 2026-07-09 / 14:34:14
  */
 
 #include "config/Lexer.hpp"
@@ -34,11 +34,11 @@ namespace config {
 
         _input = input;
         while (_pos < _input.length()) {
+            skipWhitespaceAndComments();
+
             if (_pos >= _input.length()) {
                 break;
             }
-
-            skipWhitespaceAndComments();
 
             char c = _input[_pos];
             switch (c) {
@@ -65,12 +65,10 @@ namespace config {
 
     void Lexer::skipWhitespaceAndComments() {
         while (_pos < _input.length()) {
-            char c = _input[_pos];
-
-            if (std::isspace(c)) {
+            if (std::isspace(_input.at(_pos))) {
                 _pos++;
-            } else if (c == '#') {
-                while (_pos < _input.length() && c != '\n') {
+            } else if (_input.at(_pos) == '#') {
+                while (_pos < _input.length() && _input.at(_pos) != '\n') {
                     _pos++;
                 }
             } else {
