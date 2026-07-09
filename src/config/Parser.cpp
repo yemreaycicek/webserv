@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-03 / 19:34:20
+ * @ Modified time: 2026-07-09 / 14:47:40
  */
 
 #include "config/Parser.hpp"
@@ -205,6 +205,7 @@ namespace config {
         }
     }
 
-    Parser::SyntaxError::SyntaxError (const std::string& errorMessage) : std::runtime_error(errorMessage) {}
+    Parser::SyntaxError::SyntaxError (const std::string& message) : Exception(message) {}
+    Parser::SyntaxError::~SyntaxError() throw() {}
 }
 

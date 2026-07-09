@@ -2,16 +2,16 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:04:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-04 / 19:01:09
+ * @ Modified time: 2026-07-09 / 14:48:01
  */
 
 #ifndef WEBSERV_CONFIG_ROUTER_HPP
 #define WEBSERV_CONFIG_ROUTER_HPP
 
-#include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "config/Exception.hpp"
 #include "config/Parser.hpp"
 
 namespace config {
@@ -21,16 +21,6 @@ namespace config {
             Router(const Router& other);
             Router& operator=(const Router& other);
             ~Router();
-
-            class DuplicateListenError : public std::runtime_error {
-                public:
-                    DuplicateListenError(const std::string& errorMessage);
-            };
-
-            class ServerNotFoundError : public std::runtime_error {
-                public:
-                    ServerNotFoundError(const std::string& errorMessage);
-            };
 
             std::vector<std::string> getListenAddresses() const;
             bool hasServerBlock(const std::string& listenAddress) const;
@@ -44,6 +34,18 @@ namespace config {
             Router();
 
             void buildMap();
+
+            class DuplicateListenError : public Exception {
+                public:
+                    DuplicateListenError(const std::string& message);
+                    ~DuplicateListenError() throw();
+            };
+
+            class ServerNotFoundError : public Exception {
+                public:
+                    ServerNotFoundError(const std::string& message);
+                    ~ServerNotFoundError() throw();
+            };
     };
 }
 

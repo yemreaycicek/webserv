@@ -2,16 +2,16 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-03 / 19:21:06
+ * @ Modified time: 2026-07-09 / 14:45:18
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
 #define WEBSERV_CONFIG_PARSER_HPP
 
 #include <map>
-#include <stdexcept>
 #include <vector>
 
+#include "config/Exception.hpp"
 #include "config/Lexer.hpp"
 
 namespace config {
@@ -45,11 +45,6 @@ namespace config {
 
             std::vector<ServerBlock> parse();
 
-            class SyntaxError : public std::runtime_error {
-                public:
-                    SyntaxError(const std::string& errorMessage);
-            };
-    
         private:
             typedef void(Parser::*ServerDirectiveHandler)(ServerBlock&);
             typedef void(Parser::*LocationDirectiveHandler)(LocationBlock&);
@@ -87,6 +82,11 @@ namespace config {
             const Token& advance();
             void expect(TokenType type, const std::string& errorMessage);
 
+            class SyntaxError : public Exception {
+                public:
+                    SyntaxError(const std::string& message);
+                    ~SyntaxError() throw();
+            };
     };
 }
 

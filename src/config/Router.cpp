@@ -2,13 +2,16 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:20:09
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-05 / 13:32:39
+ * @ Modified time: 2026-07-09 / 14:47:17
  */
 
 #include "config/Router.hpp"
 
 #include <string>
 #include <vector>
+
+#include "config/Exception.hpp"
+#include "config/Parser.hpp"
 
 #ifdef DEBUG
   #include "config/Debug.hpp"
@@ -87,6 +90,8 @@ namespace config {
         return (_servers);
     }
 
-    Router::DuplicateListenError::DuplicateListenError(const std::string& errorMessage) : std::runtime_error(errorMessage) {}
-    Router::ServerNotFoundError::ServerNotFoundError(const std::string& errorMessage) : std::runtime_error(errorMessage) {}
+    Router::DuplicateListenError::DuplicateListenError(const std::string& message) : Exception(message) {}
+    Router::DuplicateListenError::~DuplicateListenError() throw() {}
+    Router::ServerNotFoundError::ServerNotFoundError(const std::string& message) : Exception(message) {}
+    Router::ServerNotFoundError::~ServerNotFoundError() throw() {}
 }
