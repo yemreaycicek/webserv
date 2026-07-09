@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 15:56:39
+ * @ Modified time: 2026-07-09 / 16:20:19
  */
 
 #include "config/Parser.hpp"
@@ -198,6 +198,16 @@ namespace config {
     void Parser::validateLocationBlock(const LocationBlock& location) const {
         if (location.path.empty()) {
             throw SyntaxError("Location block must have a valid path!");
+        } else if (location.path.at(0) != '/') {
+            throw SyntaxError("Location path '" + location.path + "' must begin with a '/' character!");
+        }
+        
+        if (location.root.empty() && location.redirect.empty()) {
+            throw SyntaxError("Location '" + location.path + "' must have either a 'root' or a 'return' directive!");
+        }
+
+        if (location.uploadEnable && location.uploadStore.empty()) {
+            throw SyntaxError("Location '" + location.path + "' has upload enabled but no 'upload_store' directory defined!");
         }
     }
 
@@ -219,8 +229,7 @@ namespace config {
         if (peek().type == type) {
             advance();
         } else {
-            std::string errorMessage = "Syntax Error: " + message + " (Found: '" + peek().value + "')";
-            throw SyntaxError(errorMessage);
+            throw SyntaxError(message + " (Found: '" + peek().value + "')");
         }
     }
 
