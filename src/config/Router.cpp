@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:20:09
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 14:47:17
+ * @ Modified time: 2026-07-09 / 21:29:40
  */
 
 #include "config/Router.hpp"
@@ -53,7 +53,7 @@ namespace config {
                 }
                 
             }
-        } catch (...) {
+        } catch (const Exception&) {
             #ifdef DEBUG
                 config::Debug::printRouter((*this));
             #endif

@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 16:20:19
+ * @ Modified time: 2026-07-09 / 21:29:51
  */
 
 #include "config/Parser.hpp"
@@ -67,7 +67,7 @@ namespace config {
                     throw SyntaxError("Expected 'server' block but found '" + current.value + "'");
                 }
             }
-        } catch (const SyntaxError& e) {
+        } catch (const Exception&) {
             #ifdef DEBUG
                 config::Debug::printParser(servers);
             #endif
@@ -209,6 +209,8 @@ namespace config {
         if (location.uploadEnable && location.uploadStore.empty()) {
             throw SyntaxError("Location '" + location.path + "' has upload enabled but no 'upload_store' directory defined!");
         }
+
+        
     }
 
     bool Parser::isAtEnd() const {
