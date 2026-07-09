@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 22:31:23
+ * @ Modified time: 2026-07-09 / 22:46:31
  */
 
 #include "config/Parser.hpp"
@@ -205,6 +205,16 @@ namespace config {
         if (server.listen.empty()) {
             throw SyntaxError("Server block must contain at least one 'listen' directive!");
         }
+
+        for (std::size_t i = 0; i < server.locations.size(); i++) {
+            for (std::size_t j = i + 1; j < server.locations.size(); j++) {
+                if (server.locations.at(i).path == server.locations.at(j).path) {
+                    throw SyntaxError("Duplicate location path '" + server.locations.at(i).path + "' defined in the same server block!");
+                }
+            }
+            
+        }
+        
     }
 
     void Parser::validateLocationBlock(const LocationBlock& location) const {
