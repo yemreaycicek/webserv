@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 21:29:51
+ * @ Modified time: 2026-07-09 / 22:31:23
  */
 
 #include "config/Parser.hpp"
@@ -138,11 +138,12 @@ namespace config {
     }
 
     void Parser::parseListen(ServerBlock& server) {
-        server.listen.push_back(consumeWord("listen"));
+        parseListenAddress(consumeWord("listen"), server);
     }
 
     void Parser::parseClientHeaderBufferSize(ServerBlock& server) {
         server.clientHeaderBufferSize = consumeWord("client_header_buffer_size");
+        parseSize(server.clientHeaderBufferSize, "client_header_buffer_size");
     }
 
     void Parser::parseClientMaxBodySize(ServerBlock& server) {
@@ -151,9 +152,10 @@ namespace config {
 
     void Parser::parseErrorPage(ServerBlock& server) {
         std::string line = consumeWord("error_page");
-        long long statusCode = std::atoll(line.c_str());
-        std::string errorPagePath = consumeWord("error_page");
-        server.errorPages.insert(std::make_pair(statusCode, errorPagePath));
+        int statusCode = parseStatusCode(line, "error_page");
+        std::string path = consumeWord("error_page");
+        validatePath(path, "error_page", false);
+        server.errorPages[statusCode] = path;
     }
 
     void Parser::parseRoot(LocationBlock& location) {
@@ -165,24 +167,34 @@ namespace config {
     }
 
     void Parser::parseAllowMethods(LocationBlock& location) {
-        location.allowMethods.push_back(consumeWord("allow_methods"));
-        while (!isAtEnd() && peek().type != TOKEN_SEMICOLON) {
-            location.allowMethods.push_back(consumeWord("allow_methods"));
-        }
+        std::string method = consumeWord("allow_methods");
+        do {
+            if (method != "GET" && method != "POST" && method != "DELETE") {
+                throw SyntaxError("Unsupported HTTP method '" + method + "' in allow_methods (Only GET, POST, DELETE allowed)");
+            }
+            location.allowMethods.push_back(method);
+            if (isAtEnd() || peek().type == TOKEN_SEMICOLON) {
+                break;
+            }
+            method = consumeWord("allow_methods");
+        } while (true);
     }
 
     void Parser::parseAutoindex(LocationBlock& location) {
-        location.autoindex = (consumeWord("autoindex") == "on");
+        location.autoindex = parseBoolean(consumeWord("autoindex"), "autoindex");
     }
 
     void Parser::parseReturn(LocationBlock& location) {
-        std::string code = consumeWord("return");
-        std::string url = consumeWord("return");
-        location.redirect = code + " " + url;
+        std::string statusCodeString = consumeWord("return");
+        parseStatusCode(statusCodeString, "return");
+
+        std::string urlString = consumeWord("return");
+        validatePath(urlString, "return", true);
+        location.redirect = statusCodeString + " " + urlString;
     }
 
     void Parser::parseUploadEnable(LocationBlock& location) {
-        location.uploadEnable = (consumeWord("upload_enable") == "on");
+        location.uploadEnable = parseBoolean(consumeWord("upload_enable"), "upload_enable");
     }
 
     void Parser::parseUploadStore(LocationBlock& location) {
@@ -241,6 +253,83 @@ namespace config {
         }
         return (advance().value);
     }
+
+    void Parser::parseListenAddress(const std::string& value, ServerBlock& server) const {
+        std::size_t colonPos = value.find(':');
+        if (colonPos == std::string::npos) {
+            throw SyntaxError("Invalid listen format '" + value + "' (Expected format: IP:PORT e.g., 127.0.0.1:8080)");
+        }
+
+        std::string ip = value.substr(0, colonPos);
+        std::string portString = value.substr(colonPos + 1);
+
+        for (std::size_t i = 0; i < portString.length(); i++) {
+            if (!std::isdigit(portString.at(i))) {
+                throw SyntaxError("Port '" + portString + "' in listen address must be numeric!");
+            }
+        }
+
+        long long port = std::atoll(portString.c_str());
+        if (port < 1 || port > 65535) {
+            throw SyntaxError("Port '" + portString + "' is out of valid range (1 - 65535)");
+        }
+
+        server.listen.push_back(value);        
+    }
+
+    std::size_t Parser::parseSize(const std::string& value, const std::string& directiveName) const {
+        std::size_t len = value.length();
+        char unit = std::tolower(value.at(len - 1));
+        std::string numberString = value;
+        std::size_t multiplier = 1;
+
+        if (unit == 'k') {
+            multiplier = 1024;
+            numberString = value.substr(0, len - 1);
+        } else if (unit == 'm') {
+            multiplier = 1024 * 1024;
+            numberString = value.substr(0, len - 1);
+        }
+
+        for (std::size_t i = 0; i < numberString.length(); i++) {
+            if (!std::isdigit(numberString.at(i))) {
+                throw SyntaxError("Invalid size format '" + value + "' for directive '" + directiveName + "'");
+            }
+        }
+
+        return (std::strtoul(numberString.c_str(), NULL, 10) * multiplier);
+    }
+
+    int Parser::parseStatusCode(const std::string& value, const std::string& directiveName) const {
+        for (std::size_t i = 0; i < value.length(); i++) {
+            if (!std::isdigit(value.at(i))) {
+                throw SyntaxError("Invalid status code '" + value + "' in directive '" + directiveName + "' (Must be numeric)");
+            }
+        }
+
+        int code = std::atoi(value.c_str());
+        if (code < 100 || code > 599) {
+            throw SyntaxError("Status code '" + value + "' out of RFC 9112 bounds (100-599) in directive '" + directiveName + "'");
+        }
+        
+        return (code);
+    }
+
+    void Parser::validatePath(const std::string& path, const std::string& directiveName, const bool mustBeURI) const {
+        if (mustBeURI && path.at(0) != '/') {
+            throw SyntaxError("URI path '" + path + "' in directive '" + directiveName + "' must begin with '/'");
+        }   
+    }
+
+    bool Parser::parseBoolean(const std::string& value, const std::string& directiveName) const {
+        if (value == "on") {
+            return (true);
+        } else if (value == "off") {
+            return (false);
+        }
+        throw SyntaxError("Invalid value '" + value + "' for directive '" + directiveName + "' (Expected 'on' or 'off')");
+    }
+
 
     Parser::SyntaxError::SyntaxError (const std::string& message) : Exception(message) {}
     Parser::SyntaxError::~SyntaxError() throw() {}

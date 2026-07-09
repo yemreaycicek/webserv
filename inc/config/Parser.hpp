@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 15:46:53
+ * @ Modified time: 2026-07-09 / 22:17:20
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -86,6 +86,12 @@ namespace config {
             void expect(TokenType type, const std::string& errorMessage);
 
             const std::string consumeWord(const std::string& directiveName);
+
+            void parseListenAddress(const std::string& value, ServerBlock& server) const;
+            std::size_t parseSize(const std::string& value, const std::string& directiveName) const;
+            int parseStatusCode(const std::string& value, const std::string& directiveName) const;
+            void validatePath(const std::string& path, const std::string& directiveName, const bool mustBeURI) const;
+            bool parseBoolean(const std::string& value, const std::string& directiveName) const;
 
             class SyntaxError : public Exception {
                 public:
