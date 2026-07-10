@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-10 / 21:41:06
+ * @ Modified time: 2026-07-10 / 21:52:53
  */
 
 #include "config/Parser.hpp"
@@ -276,7 +276,7 @@ namespace config {
         std::string portString = value.substr(colonPos + 1);
         int port;
 
-        if (!str::to_numeric(value, port)) {
+        if (!str::to_numeric(portString, port)) {
             throw SyntaxError("Invalid numeric format or integer overflow in port '" + portString + "'");
         } else if (port < 1 || port > 65535) {
             throw SyntaxError("Port '" + portString + "' is out of valid range (1 - 65535)");
