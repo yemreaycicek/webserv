@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-02 / 13:56:00
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-10 / 21:30:53
+ * @ Modified time: 2026-07-10 / 21:49:50
  */
 
 #ifndef WEBSERV_UTILS_STR_HPP
@@ -26,7 +26,7 @@ namespace str {
         std::istringstream iss(value);
         iss >> result;
 
-        return (!iss.fail() && !iss.eof());
+        return (!iss.fail() && iss.eof());
     }
 
     std::string tolower(const std::string& value);
