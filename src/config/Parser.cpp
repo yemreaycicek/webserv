@@ -2,16 +2,18 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 22:46:31
+ * @ Modified time: 2026-07-10 / 21:41:06
  */
 
 #include "config/Parser.hpp"
 
-#include <cstdlib>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "utils/str.hpp"
 
 #ifdef DEBUG
   #include "config/Debug.hpp"
@@ -272,15 +274,11 @@ namespace config {
 
         std::string ip = value.substr(0, colonPos);
         std::string portString = value.substr(colonPos + 1);
+        int port;
 
-        for (std::size_t i = 0; i < portString.length(); i++) {
-            if (!std::isdigit(portString.at(i))) {
-                throw SyntaxError("Port '" + portString + "' in listen address must be numeric!");
-            }
-        }
-
-        long long port = std::atoll(portString.c_str());
-        if (port < 1 || port > 65535) {
+        if (!str::to_numeric(value, port)) {
+            throw SyntaxError("Invalid numeric format or integer overflow in port '" + portString + "'");
+        } else if (port < 1 || port > 65535) {
             throw SyntaxError("Port '" + portString + "' is out of valid range (1 - 65535)");
         }
 
@@ -301,27 +299,25 @@ namespace config {
             numberString = value.substr(0, len - 1);
         }
 
-        for (std::size_t i = 0; i < numberString.length(); i++) {
-            if (!std::isdigit(numberString.at(i))) {
-                throw SyntaxError("Invalid size format '" + value + "' for directive '" + directiveName + "'");
-            }
+        std::size_t rawValue = 0;
+
+        if (!str::to_numeric(numberString, rawValue)) {
+            throw SyntaxError("Invalid size format or integer overflow in '" + value + "' for directive '" + directiveName + "'");
+        } else if (rawValue > std::numeric_limits<std::size_t>::max() / multiplier) {
+            throw SyntaxError("Size calculation overflow! The value '" + value + "' exceeds system limits.");
         }
 
-        return (std::strtoul(numberString.c_str(), NULL, 10) * multiplier);
+        return (rawValue * multiplier);
     }
 
     int Parser::parseStatusCode(const std::string& value, const std::string& directiveName) const {
-        for (std::size_t i = 0; i < value.length(); i++) {
-            if (!std::isdigit(value.at(i))) {
-                throw SyntaxError("Invalid status code '" + value + "' in directive '" + directiveName + "' (Must be numeric)");
-            }
-        }
+        int code;
 
-        int code = std::atoi(value.c_str());
-        if (code < 100 || code > 599) {
+        if (!str::to_numeric(value, code)) {
+            throw SyntaxError("Invalid number or integer overflow in status code '" + value + "' for directive '" + directiveName + "'");
+        } else if (code < 100 || code > 599) {
             throw SyntaxError("Status code '" + value + "' out of RFC 9112 bounds (100-599) in directive '" + directiveName + "'");
         }
-        
         return (code);
     }
 
