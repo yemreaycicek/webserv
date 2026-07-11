@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-11 / 21:02:32
+ * @ Modified time: 2026-07-11 / 21:04:34
  */
 
 #include "config/Parser.hpp"
@@ -144,13 +144,11 @@ namespace config {
     }
 
     void Parser::parseClientHeaderBufferSize(ServerBlock& server) {
-        server.clientHeaderBufferSize = consumeWord("client_header_buffer_size");
-        parseSize(server.clientHeaderBufferSize, "client_header_buffer_size");
+        server.clientHeaderBufferSize = parseSize(consumeWord("client_header_buffer_size"), "client_header_buffer_size");
     }
 
     void Parser::parseClientMaxBodySize(ServerBlock& server) {
-        server.clientMaxBodySize = consumeWord("client_max_body_size");
-        parseSize(server.clientMaxBodySize, "client_max_body_size");
+        server.clientMaxBodySize = parseSize(consumeWord("client_max_body_size"), "client_max_body_size");
     }
 
     void Parser::parseErrorPage(ServerBlock& server) {
