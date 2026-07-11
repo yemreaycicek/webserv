@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-10 / 21:52:53
+ * @ Modified time: 2026-07-11 / 21:02:32
  */
 
 #include "config/Parser.hpp"
@@ -150,6 +150,7 @@ namespace config {
 
     void Parser::parseClientMaxBodySize(ServerBlock& server) {
         server.clientMaxBodySize = consumeWord("client_max_body_size");
+        parseSize(server.clientMaxBodySize, "client_max_body_size");
     }
 
     void Parser::parseErrorPage(ServerBlock& server) {
