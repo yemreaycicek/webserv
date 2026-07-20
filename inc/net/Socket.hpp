@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:36:13
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-20 / 23:13:23
+ * @ Modified time: 2026-07-21 / 00:20:36
  */
 
 #ifndef SOCKET_HPP
@@ -11,7 +11,7 @@
 namespace net{
     class Socket {
         private:
-            int fd;
+            int _fd;
             Socket(const Socket& other);
             Socket& operator=(const Socket& other);
         public:
