@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:37:49
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-20 / 21:46:42
+ * @ Modified time: 2026-07-20 / 22:32:24
  */
 
 #ifndef ADRESS_HPP
@@ -18,9 +18,9 @@ namespace net {
             struct sockaddr_in _addr;
         public:
             Address(const std::string& host, unsigned short port);
-            const struct sockaddr* getAddr() const;
-            socklen_t              getSize() const;
-            unsigned short         getPort() const;
+            const struct sockaddr*  getAddr() const;
+            socklen_t               getSize() const;
+            unsigned short          getPort() const;
     };    
 }
 
