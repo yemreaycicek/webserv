@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-21 / 22:57:06
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 00:04:45
+ * @ Modified time: 2026-07-22 / 00:09:20
  */
 
 #include "exec/Poller.hpp"
@@ -24,10 +24,20 @@ namespace exec {
 
     void Poller::deleteFd(int fd){
         for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); it++){
-            if (it->fd == fd) {
+            if (it->fd == fd){
                 _fds.erase(it);
                 return;
             }
         }
     }
+
+    void Poller::setFdEvents(int fd, short events){
+        for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); it++){
+            if (it->fd == fd){
+                it->events = events;
+                return;
+            }
+        }
+    }
+
 }
