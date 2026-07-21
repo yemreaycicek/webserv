@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-21 / 22:57:06
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 00:09:20
+ * @ Modified time: 2026-07-22 / 00:22:11
  */
 
 #include "exec/Poller.hpp"
@@ -40,4 +40,13 @@ namespace exec {
         }
     }
 
+    std::vector<pollfd> Poller::pollReady(){
+        std::vector<pollfd> readyFds;
+        if (_fds.empty()) return (readyFds);
+        poll(&_fds[0], sizeof(_fds), -1);
+        for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); it++){
+            if (it->revents != 0) readyFds.push_back(*it);
+        }
+        return (readyFds);
+    }
 }
