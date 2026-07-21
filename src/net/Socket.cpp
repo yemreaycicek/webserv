@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:07:38
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-21 / 11:29:53
+ * @ Modified time: 2026-07-21 / 11:35:36
  */
 
 
@@ -35,4 +35,7 @@ namespace net {
     int Socket::getFd() const {
         return (_fd);
     }
+
+    Socket::InvalidArgument::InvalidArgument(const std::string& message) : Exception(message) {}
+    Socket::InvalidArgument::~InvalidArgument() throw() {}
 }
