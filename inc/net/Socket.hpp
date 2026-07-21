@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:36:13
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-21 / 11:29:42
+ * @ Modified time: 2026-07-21 / 11:56:29
  */
 
 #ifndef SOCKET_HPP
@@ -17,17 +17,17 @@ namespace net{
             int _fd;
             Socket(const Socket& other);
             Socket& operator=(const Socket& other);
-            class InvalidArgument : public Exception {
-                public:
-                    InvalidArgument(const std::string& message);
-                    ~InvalidArgument() throw();
-            };
         public:
             Socket(int fd);
             void    setNonBlocking();
             void    setReuseAddr();
             int     getFd() const;
             ~Socket();
+            class SocketError : public Exception {
+                public:
+                    SocketError(const std::string& message);
+                    ~SocketError() throw();
+            };
     };
 }
 
