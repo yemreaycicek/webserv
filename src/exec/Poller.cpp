@@ -2,13 +2,14 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-21 / 22:57:06
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 00:22:11
+ * @ Modified time: 2026-07-22 / 00:45:34
  */
 
 #include "exec/Poller.hpp"
 
 #include <poll.h>
 #include <vector>
+#include <stdexcept>
 
 namespace exec {
     Poller::Poller() {}
@@ -23,6 +24,7 @@ namespace exec {
     }
 
     void Poller::deleteFd(int fd){
+        if (_fds.empty()) return;
         for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); it++){
             if (it->fd == fd){
                 _fds.erase(it);
@@ -32,6 +34,7 @@ namespace exec {
     }
 
     void Poller::setFdEvents(int fd, short events){
+        if (_fds.empty()) return;
         for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); it++){
             if (it->fd == fd){
                 it->events = events;
@@ -43,7 +46,7 @@ namespace exec {
     std::vector<pollfd> Poller::pollReady(){
         std::vector<pollfd> readyFds;
         if (_fds.empty()) return (readyFds);
-        poll(&_fds[0], sizeof(_fds), -1);
+        if (poll(&_fds[0], sizeof(_fds), -1) < 0) throw PollError("Poller: Poll() failed");
         for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); it++){
             if (it->revents != 0) readyFds.push_back(*it);
         }
