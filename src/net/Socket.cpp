@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:07:38
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-21 / 00:45:48
+ * @ Modified time: 2026-07-21 / 11:29:53
  */
 
 
@@ -24,12 +24,12 @@ namespace net {
         int y = 1;
         setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &y, sizeof(y));
         if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &y, sizeof(y)) < 0)
-            throw std::invalid_argument("setReuseAddr: setsockopt faild");
+            throw InvalidArgument("setReuseAddr: setsockopt faild");
     }
 
     void Socket::setNonBlocking(){
         if (fcntl(_fd, F_SETFL, O_NONBLOCK) < 0)
-            throw std::invalid_argument("setNonBlocking: fcntl faild");
+            throw InvalidArgument("setNonBlocking: fcntl faild");
     }
 
     int Socket::getFd() const {
