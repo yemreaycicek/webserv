@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 17:44:24
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 20:04:29
+ * @ Modified time: 2026-07-22 / 20:06:11
  */
 
 #include "exec/Connection.hpp"
@@ -26,9 +26,8 @@ namespace exec {
     }
 
     bool Connection::isRequestComplete() const{
-        ssize_t res = _rdBuf.find("\r\n\r\n", 0);
-        if (res == std::string::npos) return (false);
-        return (true);
+        size_t res = _rdBuf.find("\r\n\r\n", 0);
+        return (res != std::string::npos);
     }
 
     void Connection::onReadable(){
