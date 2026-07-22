@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-21 / 22:57:06
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 17:11:11
+ * @ Modified time: 2026-07-22 / 17:13:22
  */
 
 #include "exec/Poller.hpp"
@@ -52,4 +52,6 @@ namespace exec {
         }
         return (readyFds);
     }
+    Poller::PollError::PollError(const std::string& message) : Exception(message) {}
+    Poller::PollError::~PollError() throw() {}
 }
