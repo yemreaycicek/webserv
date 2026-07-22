@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 17:44:24
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 20:02:26
+ * @ Modified time: 2026-07-22 / 20:04:29
  */
 
 #include "exec/Connection.hpp"
@@ -36,7 +36,7 @@ namespace exec {
         ssize_t rc = recv(getFd(), bf, sizeof(bf), 0);        
         if (rc > 0) {
             _rdBuf.append(bf, rc);
-        } else if (rc == 0){
+        } else if (rc <= 0){
             _state = CLOSING;
         }
     }
