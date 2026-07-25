@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 21:16:44
+ * @ Modified time: 2026-07-25 / 21:22:05
  */
 
 #include "exec/Server.hpp"
@@ -72,7 +72,11 @@ namespace exec {
             conCl->onReadable();
             if (conCl->isRequestComplete()) {
                 //std::string buf = conCl->getRequestData();
-                std::string res = "HTTP/1.1 200 OK\r\n\r\n";
+                std::string res =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Length: 0\r\n"
+                "Connection: close\r\n"
+                "\r\n";
                 conCl->setResponse(res);
                 _poller.setFdEvents(fd, POLLOUT);
             }
