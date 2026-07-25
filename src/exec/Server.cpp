@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 20:08:50
+ * @ Modified time: 2026-07-25 / 21:10:10
  */
 
 #include "exec/Server.hpp"
@@ -37,7 +37,7 @@ namespace exec {
     void Server::addCl(int cl_fd, short events) {
         exec::Connection* con = new exec::Connection(cl_fd);
         _connections[cl_fd] = con;
-        _poller.addFd(cl_fd, POLLIN);
+        _poller.addFd(cl_fd, events);
     }
 
     void Server::acceptCl(int ls_fd) {
@@ -49,10 +49,18 @@ namespace exec {
             }
         }
         int cl_fd = ls->acceptRun();
-        if (cl_fd > 0) {
-            _clAddr[cl_fd] = _lsAddr[ls_fd];
-            addCl(cl_fd, POLLIN);
-        }
+        if (cl_fd < 0) return;
+        _clAddr[cl_fd] = _lsAddr[ls_fd];
+        addCl(cl_fd, POLLIN);
+    }
+
+    void Server::delCl(int fd) {
+        std::map<int, exec::Connection*>::iterator it = _connections.find(fd);
+        if (it == _connections.end()) return;
+        _poller.deleteFd(fd);
+        delete it->second;
+        _connections.erase(it);
+        _clAddr.erase(fd);
     }
 
     void Server::handleCl(int fd, short revents) {
@@ -62,7 +70,7 @@ namespace exec {
             conCl->onReadable();
             if (conCl->isRequestComplete()) {
                 std::string buf = conCl->getRequestData();
-                std::string res = "HTTP/1.1 200 OK\r\n\r\n ";
+                std::string res = "HTTP/1.1 200 OK\r\n\r\n";
                 conCl->setResponse(res);
                 _poller.setFdEvents(fd, POLLOUT);
             }
@@ -79,14 +87,11 @@ namespace exec {
         while (true) {
             std::vector<pollfd> pl = _poller.pollReady(120);
             for (size_t i = 0; i < pl.size(); ++i) {
-                if (pl[i].revents & POLLIN) {
-                    if (_lsAddr.count(pl[i].fd)) {
-                        // listen
-                        acceptCl(pl[i].fd);
-                    } else {
-                        // chlid
-                        handleCl(pl[i].fd, pl[i].revents);
-                    }
+                if (_lsAddr.count(pl[i].fd)) {
+                    acceptCl(pl[i].fd);
+                }
+                else {
+                    handleCl(pl[i].fd, pl[i].revents);
                 }
             }
         }
