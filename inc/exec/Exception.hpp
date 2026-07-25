@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 00:36:18
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 00:38:37
+ * @ Modified time: 2026-07-25 / 17:01:38
  */
 
 #ifndef WEBSERV_EXEC_EXCEPTION_HPP
@@ -12,7 +12,7 @@
 #include <string>
 
 namespace exec {
-    class Exception {
+    class Exception : public std::runtime_error {
         public:
             Exception(const std::string& message);
             ~Exception() throw();
