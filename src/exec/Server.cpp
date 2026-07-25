@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 21:13:00
+ * @ Modified time: 2026-07-25 / 21:16:44
  */
 
 #include "exec/Server.hpp"
@@ -50,6 +50,7 @@ namespace exec {
                 break;
             }
         }
+        if (ls == NULL) return;
         int cl_fd = ls->acceptRun();
         if (cl_fd < 0) return;
         _clAddr[cl_fd] = _lsAddr[ls_fd];
@@ -66,12 +67,11 @@ namespace exec {
     }
 
     void Server::handleCl(int fd, short revents) {
-        exec::Connection *conCl;
-        conCl = _connections[fd];
+        exec::Connection *conCl = _connections[fd];
         if (revents & POLLIN) {
             conCl->onReadable();
             if (conCl->isRequestComplete()) {
-                std::string buf = conCl->getRequestData();
+                //std::string buf = conCl->getRequestData();
                 std::string res = "HTTP/1.1 200 OK\r\n\r\n";
                 conCl->setResponse(res);
                 _poller.setFdEvents(fd, POLLOUT);
