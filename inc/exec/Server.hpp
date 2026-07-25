@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:41
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 16:51:59
+ * @ Modified time: 2026-07-25 / 19:14:01
  */
 
 #ifndef WEBSERV_EXEC_SERVER_HPP
@@ -23,10 +23,14 @@ namespace exec {
             Server(const config::Router& config);
             ~Server();
 
-
+            void                                run();
         private:
             Server(const Server& other);
             Server&                             operator=(const Server& other);
+            
+            void                                addCl(int cl_fd, short events);
+            void                                acceptCl(int ls_fd);
+
             const config::Router&               _config;
             exec::Poller                        _poller;
             std::vector<net::ListenSocket*>     _listenSockets;          
