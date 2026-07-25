@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 21:10:10
+ * @ Modified time: 2026-07-25 / 21:13:00
  */
 
 #include "exec/Server.hpp"
@@ -29,9 +29,11 @@ namespace exec {
         }
     }
     exec::Server::~Server() {
-        for (size_t i = 0; i < _listenSockets.size(); ++i) {
+        std::map<int, exec::Connection*>::iterator it = _connections.begin();
+        for (; it != _connections.end(); ++it)
+            delete it->second;
+        for (size_t i = 0; i < _listenSockets.size(); ++i)
             delete _listenSockets[i];
-        }
     }
 
     void Server::addCl(int cl_fd, short events) {
