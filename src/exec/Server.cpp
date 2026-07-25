@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 19:13:47
+ * @ Modified time: 2026-07-25 / 19:59:06
  */
 
 #include "exec/Server.hpp"
@@ -47,7 +47,26 @@ namespace exec {
             addCl(cl_fd, POLLIN);
         }
     }
-    
+
+    void Server::handleCl(int fd, short revents) {
+        exec::Connection *conCl;
+        conCl = _connections[fd];
+        if (revents & POLLIN) {
+            conCl->onReadable();
+            if (conCl->isRequestComplete()) {
+                std::string buf = conCl->getRequestData();
+                std::string res = "HTTP/1.1 200 OK\r\n\r\n ";
+                conCl->setResponse(res);
+                _poller.setFdEvents(fd, POLLOUT);
+            } else if (revents & POLLOUT) {
+                conCl->onWritable();
+                if (conCl->getState() == CLOSING){
+                    delCl(fd);
+                }
+            }
+        }
+    }
+
     void Server::run() {
         while (true) {
             std::vector<pollfd> pl = _poller.pollReady(120);
@@ -58,11 +77,10 @@ namespace exec {
                         acceptCl(pl[i].fd);
                     } else {
                         // chlid
-                        //handleCl(pl[i].fd, pl[i].revents);
+                        handleCl(pl[i].fd, pl[i].revents);
                     }
                 }
             }
         }
     }
-    
 }
