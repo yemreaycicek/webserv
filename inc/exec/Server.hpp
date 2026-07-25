@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:41
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 19:14:01
+ * @ Modified time: 2026-07-25 / 20:17:07
  */
 
 #ifndef WEBSERV_EXEC_SERVER_HPP
@@ -29,6 +29,7 @@ namespace exec {
             Server&                             operator=(const Server& other);
             
             void                                addCl(int cl_fd, short events);
+            void                                handleCl(int fd, short revents);
             void                                acceptCl(int ls_fd);
 
             const config::Router&               _config;
