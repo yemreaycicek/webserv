@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 17:03:11
+ * @ Modified time: 2026-07-25 / 19:13:47
  */
 
 #include "exec/Server.hpp"
@@ -10,7 +10,7 @@
 #include "utils/str.hpp"
 #include <cstdlib>
 #include <poll.h>
-
+#include <iostream>
 
 namespace exec {
     Server::Server(const config::Router& config) : _config(config), _poller() {
@@ -33,4 +33,36 @@ namespace exec {
             delete _listenSockets[i];
         }
     }
+
+    void Server::addCl(int cl_fd, short events) {
+        exec::Connection* con = new exec::Connection(cl_fd);
+        _connections[cl_fd] = con;
+        _poller.addFd(cl_fd, POLLIN);
+    }
+
+    void Server::acceptCl(int ls_fd) {
+        int cl_fd = _listenSockets[ls_fd]->acceptRun();
+        if (cl_fd > 0) {
+            _clAddr[cl_fd] = _lsAddr[ls_fd];
+            addCl(cl_fd, POLLIN);
+        }
+    }
+    
+    void Server::run() {
+        while (true) {
+            std::vector<pollfd> pl = _poller.pollReady(120);
+            for (size_t i = 0; i < pl.size(); ++i) {
+                if (pl[i].revents & POLLIN) {
+                    if (_lsAddr.count(pl[i].fd)) {
+                        // listen
+                        acceptCl(pl[i].fd);
+                    } else {
+                        // chlid
+                        //handleCl(pl[i].fd, pl[i].revents);
+                    }
+                }
+            }
+        }
+    }
+    
 }
