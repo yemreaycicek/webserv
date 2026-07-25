@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 16:51:10
+ * @ Modified time: 2026-07-25 / 17:03:11
  */
 
 #include "exec/Server.hpp"
@@ -26,6 +26,11 @@ namespace exec {
             _poller.addFd(ls->getFd(), POLLIN);
             _listenSockets.push_back(ls);
             _lsAddr[ls->getFd()] = addr;
+        }
+    }
+    exec::Server::~Server() {
+        for (size_t i = 0; i < _listenSockets.size(); ++i) {
+            delete _listenSockets[i];
         }
     }
 }
