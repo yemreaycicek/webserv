@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 19:59:06
+ * @ Modified time: 2026-07-25 / 20:08:50
  */
 
 #include "exec/Server.hpp"
@@ -41,7 +41,14 @@ namespace exec {
     }
 
     void Server::acceptCl(int ls_fd) {
-        int cl_fd = _listenSockets[ls_fd]->acceptRun();
+        net::ListenSocket* ls = NULL;
+        for (size_t i = 0; i < _listenSockets.size(); ++i) {
+            if (_listenSockets[i]->getFd() == ls_fd) {
+                ls = _listenSockets[i];
+                break;
+            }
+        }
+        int cl_fd = ls->acceptRun();
         if (cl_fd > 0) {
             _clAddr[cl_fd] = _lsAddr[ls_fd];
             addCl(cl_fd, POLLIN);
@@ -58,11 +65,12 @@ namespace exec {
                 std::string res = "HTTP/1.1 200 OK\r\n\r\n ";
                 conCl->setResponse(res);
                 _poller.setFdEvents(fd, POLLOUT);
-            } else if (revents & POLLOUT) {
-                conCl->onWritable();
-                if (conCl->getState() == CLOSING){
-                    delCl(fd);
-                }
+            }
+        }
+        if (revents & POLLOUT) {
+            conCl->onWritable();
+            if (conCl->getState() == CLOSING){
+                delCl(fd);
             }
         }
     }
