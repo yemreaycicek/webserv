@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-24 / 12:54:35
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-25 / 14:08:12
+ * @ Modified time: 2026-07-26 / 13:29:07
  */
 
 #include "http/Body.hpp"
@@ -59,7 +59,7 @@ namespace http {
         } else {
             if (contentLength == 0) {
                 return (true);
-            } else if (buffer.length() <= contentLength) {
+            } else if (buffer.length() >= contentLength) {
                 _content += buffer.substr(0, contentLength);
                 buffer.erase(0, contentLength);
                 return (true);
