@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:36:42
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-21 / 17:12:55
+ * @ Modified time: 2026-07-21 / 17:19:13
  */
 
 #ifndef WEBSERV_NET_LISTENSOCKET_HPP
@@ -20,10 +20,10 @@ namespace net {
             explicit ListenSocket(const Address& addr);
             int acceptRun();
             ~ListenSocket();
-            class CreateSocketERR : public Exception {
+            class ListenSocketError : public Exception {
                 public:
-                    CreateSocketERR(const std::string& message);
-                    ~CreateSocketERR() throw();
+                    ListenSocketError(const std::string& message);
+                    ~ListenSocketError() throw();
             };
         private:
             static int createSocket();
