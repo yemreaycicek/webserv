@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:50:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-25 / 14:10:31
+ * @ Modified time: 2026-07-26 / 13:26:38
  */
 
 #include "http/Header.hpp"
@@ -45,13 +45,13 @@ namespace http {
     }
 
     void Header::addHeaderLine(const std::string& line) {
-        std::size_t colon = line.find(' ');
+        std::size_t colon = line.find(':');
         if (colon == std::string::npos) {
             throw http::Exception(http::status::BAD_REQUEST, "Malformed header line (missing colon)");
         }
 
         std::string key = str::tolower(line.substr(0, colon));
-        std::string value = str::trim(line.substr(0, colon));
+        std::string value = str::trim(line.substr(colon + 1));
         _fields[key] = value;
     }
 
