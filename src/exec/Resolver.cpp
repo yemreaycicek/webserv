@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-26 / 00:10:30
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-28 / 18:50:57
+ * @ Modified time: 2026-07-28 / 20:31:03
  */
 
 
@@ -27,12 +27,23 @@ namespace exec {
         return res;
     }
 
+    std::string Resolver::buildFsPath(const config::LocationBlock& loc, const std::string& uri) const {
+        std::string remainder = uri.substr(loc.path.size());
+        std::string root = loc.root;
+        if (!remainder.empty() && !root.empty()) {
+            if (remainder[0] != '/' && root[root.size() - 1] != '/') {
+                remainder = "/" + remainder;
+            } else if (remainder[0] == '/' && root[root.size() - 1] == '/') {
+                root.erase(root.size() - 1);
+            }
+        }
+        return (root + remainder);
+    }
+
     ResolvedPath Resolver::resolve(const config::ServerBlock& sb, const std::string& uri) {
         ResolvedPath resolvePath;
         resolvePath.location = matchLocation(sb, uri);
-        
-        
-        
+        if (resolvePath.location) resolvePath.fsPath= buildFsPath(*resolvePath.location, uri);
+        return (resolvePath);
     }
-
 }

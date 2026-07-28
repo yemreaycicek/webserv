@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-26 / 00:10:42
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-28 / 18:51:10
+ * @ Modified time: 2026-07-28 / 20:23:08
  */
 
 #ifndef WEBSERV_EXEC_RESOLVER_HPP
@@ -15,7 +15,7 @@
 namespace exec {
     struct ResolvedPath {
         const config::LocationBlock*    location;
-        std::string                     path;
+        std::string                     fsPath;
     };
 
     class Resolver {
@@ -23,10 +23,10 @@ namespace exec {
             Resolver();
             ~Resolver();
 
-            ResolvedPath                    resolve(const config::ServerBlock& sb, const std::string& uri); // bu fonksiyon çağrıldığında Resolver çalışacak.
+            ResolvedPath                    resolve(const config::ServerBlock& sb, const std::string& uri);
         private:
             const config::LocationBlock*    matchLocation(const config::ServerBlock& sb, const std::string& uri) const;
-            //std::string                     buildFsPath(const config::LocationBlock& loc, const std::string& uri);
+            std::string                     buildFsPath(const config::LocationBlock& loc, const std::string& uri) const;
     };
 }
 
