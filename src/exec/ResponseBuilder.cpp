@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-01 / 14:40:55
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-01 / 15:05:51
+ * @ Modified time: 2026-08-01 / 15:11:36
  */
 
 #include "utils/str.hpp"
@@ -16,5 +16,9 @@ namespace exec {
 
     std::string ResponseBuilder::buildStatusLine(http::status::Code status) const {
         return ("HTTP/1.1" + str::to_string(status) + " " + http::status::getReasonPhrase(status) + "\r\n"); 
+    }
+
+    std::string ResponseBuilder::buildHeaders(const std::string& body, const std::string& contentType) const {
+        return ("Content-Length: " + str::to_string(body.length()) + "\r\n" + "Content-Type: " + contentType + "\r\n" + "Connection: close\r\n");
     }
 }
