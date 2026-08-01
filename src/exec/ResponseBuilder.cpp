@@ -15,7 +15,7 @@ namespace exec {
     ResponseBuilder::~ResponseBuilder() {}
 
     std::string ResponseBuilder::buildStatusLine(http::status::Code status) const {
-        return ("HTTP/1.1" + str::to_string(status) + " " + http::status::getReasonPhrase(status) + "\r\n"); 
+        return ("HTTP/1.1 " + str::to_string(status) + " " + http::status::getReasonPhrase(status) + "\r\n"); 
     }
 
     std::string ResponseBuilder::buildHeaders(const std::string& body, const std::string& contentType) const {
