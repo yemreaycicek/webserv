@@ -2,10 +2,11 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 17:44:24
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 20:06:11
+ * @ Modified time: 2026-08-02 / 17:46:54
  */
 
 #include "exec/Connection.hpp"
+#include "http/Request.hpp"
 #include <sys/socket.h>
 
 namespace exec {
@@ -25,9 +26,12 @@ namespace exec {
         return (_rdBuf);
     }
 
+    const http::Request& Connection::getRequest() const {
+        return (_request);
+    }
+
     bool Connection::isRequestComplete() const{
-        size_t res = _rdBuf.find("\r\n\r\n", 0);
-        return (res != std::string::npos);
+        return (_request.isComplete());
     }
 
     void Connection::onReadable(){
@@ -35,6 +39,7 @@ namespace exec {
         ssize_t rc = recv(getFd(), bf, sizeof(bf), 0);        
         if (rc > 0) {
             _rdBuf.append(bf, rc);
+            _request.parse(std::string(bf, rc));
         } else if (rc <= 0){
             _state = CLOSING;
         }
