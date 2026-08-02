@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 22:17:23
+ * @ Modified time: 2026-08-02 / 23:23:55
  */
 
 #include "exec/Executor.hpp"
@@ -116,11 +116,39 @@ namespace exec {
         }
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
-    
+
+    std::string Executor::handlePost(const config::ServerBlock& sb, const http::Request& r) {
+        exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
+        if (rp.location == NULL) return (buildError(http::status::NOT_FOUND, sb));
+        const std::vector<std::string>& methods = rp.location->allowMethods;
+        for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
+            if (*it == "POST") {
+                if (r.getBody().size() > sb.clientMaxBodySize) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
+                if (!rp.location->uploadEnable) return (buildError(http::status::FORBIDDEN, sb));
+
+                std::string uri = r.getUri();
+                std::string fileName = uri.substr(uri.rfind('/') + 1);
+                std::string us = rp.location->uploadStore;
+                if (!us.empty() && us[us.size() - 1] != '/') us += '/';
+                us += fileName;
+                std::ofstream file(us.c_str());
+                if (!file.is_open()) return (buildError(http::status::INTERNAL_SERVER_ERROR, sb));
+                file << r.getBody();
+                file.close();
+                return _responseBuilder.build(http::status::CREATED, "<html><body>Dosya yuklendi</body></html>", "text/html");
+            }
+        }
+        return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+    }
+
+
     std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r) {
         http::Method m = r.getMethod();
         if (m == http::GET) {
             return (handleGet(sb, r));
+        }
+        if (m == http::POST) {
+            return (handlePost(sb, r));
         }
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }

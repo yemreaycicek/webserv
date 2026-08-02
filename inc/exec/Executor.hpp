@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 20:58:40
+ * @ Modified time: 2026-08-02 / 22:51:17
  */
 
 
@@ -40,6 +40,8 @@ namespace exec {
             std::string     generateAutoindex(const std::string& fsPath, const std::string& uri) const;
             std::string     getContentType(const std::string& path) const;
             std::string     buildError(http::status::Code code, const config::ServerBlock& sb) const;
+            std::string     handlePost(const config::ServerBlock& sb, const http::Request& r);
+
 
             Resolver        _resolver;
             ResponseBuilder _responseBuilder;
