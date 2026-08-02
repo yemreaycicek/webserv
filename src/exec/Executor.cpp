@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 20:35:07
+ * @ Modified time: 2026-08-02 / 22:17:23
  */
 
 #include "exec/Executor.hpp"
@@ -32,6 +32,19 @@ namespace exec {
         std::stringstream ss;
         ss << file.rdbuf();
         return ss.str();
+    }
+
+    std::string Executor::buildError(http::status::Code code, const config::ServerBlock& sb) const {
+        std::map<std::size_t, std::string>::const_iterator it = sb.errorPages.find(code);
+        if (it != sb.errorPages.end()) {
+            std::string path = it->second;
+            if (!path.empty() && path[0] == '/') path = "." + path;
+            std::string content = readFile(path);
+            if (!content.empty()) return _responseBuilder.build(code, content, "text/html");
+        }
+        std::string body = "<html><body><h1>" + str::to_string(code) + " "
+                         + http::status::getReasonPhrase(code) + "</h1></body></html>";
+        return _responseBuilder.build(code, body, "text/html");
     }
 
     std::string Executor::getContentType(const std::string& path) const {
@@ -71,14 +84,14 @@ namespace exec {
     std::string Executor::handleGet(const config::ServerBlock& sb, const http::Request& r) {
         exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
         if (rp.location == NULL) {
-            return (_responseBuilder.build(http::status::NOT_FOUND, "<html>404</html>", "text/html"));
+            return (buildError(http::status::NOT_FOUND, sb));
         }
 
         const std::vector<std::string>& methods = rp.location->allowMethods;
         for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
             if (*it == "GET") {
                 PathType type = getPathType(rp.fsPath);
-                if (type == PATH_NONE) return (_responseBuilder.build(http::status::NOT_FOUND, "<html>404</html>", "text/html"));
+                if (type == PATH_NONE) return (buildError(http::status::NOT_FOUND, sb));
                 if (type == PATH_DIR) {
                     std::string indexName = rp.location->index;
                     if (!indexName.empty()) {
@@ -92,16 +105,16 @@ namespace exec {
                     }
                     if (rp.location->autoindex) {
                         std::string listing = generateAutoindex(rp.fsPath, r.getUri());
-                        if (!listing.empty()) return (_responseBuilder.build(http::status::OK, listing, getContentType(rp.fsPath)));
+                        if (!listing.empty()) return (_responseBuilder.build(http::status::OK, listing, "text/html"));
                     }
-                    return (_responseBuilder.build(http::status::FORBIDDEN, "<html>403</html>", "text/html"));
+                    return (buildError(http::status::FORBIDDEN, sb));
                 }
                 std::string content = readFile(rp.fsPath);
-                if (content.empty()) return (_responseBuilder.build(http::status::NOT_FOUND, "<html>404</html>", "text/html"));
+                if (content.empty()) return (buildError(http::status::NOT_FOUND, sb));
                 return (_responseBuilder.build(http::status::OK, content, getContentType(rp.fsPath)));
             }
         }
-        return (_responseBuilder.build(http::status::METHOD_NOT_ALLOWED, "<html>405</html>", "text/html"));
+        return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
     
     std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r) {
@@ -109,6 +122,6 @@ namespace exec {
         if (m == http::GET) {
             return (handleGet(sb, r));
         }
-        return (_responseBuilder.build(http::status::METHOD_NOT_ALLOWED, "<html>405</html>", "text/html"));
+        return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
 }
