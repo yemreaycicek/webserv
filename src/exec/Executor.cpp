@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 18:37:10
+ * @ Modified time: 2026-08-02 / 18:53:03
  */
 
 #include "exec/Executor.hpp"
@@ -43,7 +43,19 @@ namespace exec {
             if (*it == "GET") {
                 PathType type = getPathType(rp.fsPath);
                 if (type == PATH_NONE) return (_responseBuilder.build(http::status::NOT_FOUND, "<html>404</html>", "text/html"));
-                if (type == PATH_DIR) return (_responseBuilder.build(http::status::FORBIDDEN, "<html>403</html>", "text/html"));
+                if (type == PATH_DIR) {
+                    std::string indexName = rp.location->index;
+                    if (!indexName.empty()) {
+                        std::string indexPath = rp.fsPath;
+                        if (indexPath[indexPath.size() - 1] != '/') indexPath += '/';
+                        indexPath += indexName;
+                        if (getPathType(indexPath) == PATH_FILE) {
+                            std::string content = readFile(indexPath);
+                            return _responseBuilder.build(http::status::OK, content, "text/html");
+                        }
+                    }
+                    return (_responseBuilder.build(http::status::FORBIDDEN, "<html>403</html>", "text/html"));
+                }
                 std::string content = readFile(rp.fsPath);
                 if (content.empty()) return (_responseBuilder.build(http::status::NOT_FOUND, "<html>404</html>", "text/html"));
                 return (_responseBuilder.build(http::status::OK, content, "text/html"));
