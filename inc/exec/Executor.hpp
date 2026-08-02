@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 13:58:28
+ * @ Modified time: 2026-08-02 / 18:24:22
  */
 
 
@@ -17,6 +17,12 @@
 #include <string>
 
 namespace exec {
+    enum PathType {
+        PATH_NONE,
+        PATH_FILE,
+        PATH_DIR
+    };
+
     class Executor {
         public:
             Executor();
@@ -28,6 +34,7 @@ namespace exec {
             Executor(const Executor& other);
             Executor&       operator=(const Executor& other);
 
+            PathType        getPathType(const std::string& path) const;
             std::string     handleGet(const config::ServerBlock& sb, const http::Request& r);
             std::string     readFile(const std::string& path) const;
 
