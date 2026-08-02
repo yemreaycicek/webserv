@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 18:53:03
+ * @ Modified time: 2026-08-02 / 19:58:47
  */
 
 #include "exec/Executor.hpp"
@@ -11,6 +11,8 @@
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
+#include <dirent.h>
+
 
 namespace exec {
     Executor::Executor() {}
@@ -32,12 +34,31 @@ namespace exec {
         return ss.str();
     }
 
+    std::string Executor::generateAutoindex(const std::string& fsPath, const std::string& uri) const {
+        DIR* dir = opendir(fsPath.c_str());
+        if (dir == NULL) return ("");
+        std::string base = uri;
+        if (base.empty() || base[base.size() - 1] != '/') base += '/';
+        std::stringstream body;
+        body << "<html><head><title>Index of " << uri << "</title></head><body>";
+        body << "<h1>Index of " << uri << "</h1>";
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != NULL) {
+            std::string name = entry->d_name;
+            if (name == "." || name == "..") continue;
+            body << "<a href=\"" << base << name << "\">" << name << "</a><br>";
+        }
+        body << "</body></html>";
+        closedir(dir);
+        return (body.str());
+    }
+
     std::string Executor::handleGet(const config::ServerBlock& sb, const http::Request& r) {
         exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
         if (rp.location == NULL) {
             return (_responseBuilder.build(http::status::NOT_FOUND, "<html>404</html>", "text/html"));
         }
-        
+
         const std::vector<std::string>& methods = rp.location->allowMethods;
         for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
             if (*it == "GET") {
@@ -53,6 +74,10 @@ namespace exec {
                             std::string content = readFile(indexPath);
                             return _responseBuilder.build(http::status::OK, content, "text/html");
                         }
+                    }
+                    if (rp.location->autoindex) {
+                        std::string listing = generateAutoindex(rp.fsPath, r.getUri());
+                        if (!listing.empty()) return (_responseBuilder.build(http::status::OK, listing, "text/html"));
                     }
                     return (_responseBuilder.build(http::status::FORBIDDEN, "<html>403</html>", "text/html"));
                 }
