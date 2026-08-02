@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:41
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 19:19:09
+ * @ Modified time: 2026-08-02 / 17:55:54
  */
 
 #ifndef WEBSERV_EXEC_SERVER_HPP
@@ -12,6 +12,8 @@
 #include "config/Router.hpp"
 #include "exec/Poller.hpp"
 #include "exec/Connection.hpp"
+#include "exec/Server.hpp"
+#include "exec/Executor.hpp"
 
 #include <map>
 #include <vector>
@@ -35,6 +37,7 @@ namespace exec {
 
             const config::Router&               _config;
             exec::Poller                        _poller;
+            exec::Executor                      _executor;
             std::vector<net::ListenSocket*>     _listenSockets;          
             std::map<int, exec::Connection*>    _connections;
             std::map<int, std::string>          _clAddr;

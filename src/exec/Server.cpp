@@ -2,12 +2,13 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 21:22:05
+ * @ Modified time: 2026-08-02 / 17:54:41
  */
 
 #include "exec/Server.hpp"
 #include "net/Address.hpp"
 #include "utils/str.hpp"
+#include "exec/Executor.hpp"
 #include <cstdlib>
 #include <poll.h>
 #include <iostream>
@@ -72,11 +73,15 @@ namespace exec {
             conCl->onReadable();
             if (conCl->isRequestComplete()) {
                 //std::string buf = conCl->getRequestData();
-                std::string res =
-                "HTTP/1.1 200 OK\r\n"
-                "Content-Length: 0\r\n"
-                "Connection: close\r\n"
-                "\r\n";
+                // std::string res =
+                // "HTTP/1.1 200 OK\r\n"
+                // "Content-Length: 0\r\n"
+                // "Connection: close\r\n"
+                // "\r\n";
+                const config::ServerBlock& sb = _config.getServerBlock(_clAddr[fd]);
+                std::string res = _executor.execute(sb, conCl->getRequest());
+                conCl->setResponse(res);
+                _poller.setFdEvents(fd, POLLOUT);                
                 conCl->setResponse(res);
                 _poller.setFdEvents(fd, POLLOUT);
             }
