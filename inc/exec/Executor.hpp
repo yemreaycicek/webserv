@@ -41,7 +41,7 @@ namespace exec {
             std::string     getContentType(const std::string& path) const;
             std::string     buildError(http::status::Code code, const config::ServerBlock& sb) const;
             std::string     handlePost(const config::ServerBlock& sb, const http::Request& r);
-
+            std::string     handleDelete(const config::ServerBlock& sb, const http::Request& r);
 
             Resolver        _resolver;
             ResponseBuilder _responseBuilder;

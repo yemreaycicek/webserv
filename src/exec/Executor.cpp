@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 23:23:55
+ * @ Modified time: 2026-08-02 / 23:37:19
  */
 
 #include "exec/Executor.hpp"
@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <cctype>
+#include <unistd.h>
+#include <cstdio>
 
 namespace exec {
     Executor::Executor() {}
@@ -141,6 +143,19 @@ namespace exec {
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
 
+    std::string Executor::handleDelete(const config::ServerBlock& sb, const http::Request& r) {
+        exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
+        if (rp.location == NULL) return (buildError(http::status::NOT_FOUND, sb));
+        const std::vector<std::string>& methods = rp.location->allowMethods;
+        for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
+            if (*it == "DELETE") {
+                if (!getPathType(rp.fsPath)) return (buildError(http::status::NOT_FOUND, sb));
+                if (remove(rp.fsPath.c_str()) != 0) return buildError(http::status::INTERNAL_SERVER_ERROR, sb);
+                return _responseBuilder.build(http::status::OK, "<html><body>Silindi</body></html>", "text/html");
+            }
+        }
+        return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+    }
 
     std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r) {
         http::Method m = r.getMethod();
@@ -149,6 +164,9 @@ namespace exec {
         }
         if (m == http::POST) {
             return (handlePost(sb, r));
+        }
+        if (m == http::DELETE) {
+            return (handleDelete(sb, r));
         }
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
