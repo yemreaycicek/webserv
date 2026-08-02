@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 19:56:55
+ * @ Modified time: 2026-08-02 / 20:07:30
  */
 
 
@@ -38,6 +38,7 @@ namespace exec {
             std::string     handleGet(const config::ServerBlock& sb, const http::Request& r);
             std::string     readFile(const std::string& path) const;
             std::string     generateAutoindex(const std::string& fsPath, const std::string& uri) const;
+            std::string     getContentType(const std::string& path) const;
 
             Resolver        _resolver;
             ResponseBuilder _responseBuilder;
