@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:51:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-03 / 11:36:16
+ * @ Modified time: 2026-08-03 / 16:01:01
  */
 
 #include "http/RequestLine.hpp"
@@ -47,7 +47,7 @@ namespace http {
         }
         
         std::string methodString = line.substr(0, firstSpace);
-        _method = stringToMethod(methodString);
+        _method = getMethod();
         if (_method == UNKNOWN) {
             throw http::Exception(http::status::NOT_IMPLEMENTED, "Unknown HTTP Method '" + methodString + "'");
         }
@@ -65,10 +65,7 @@ namespace http {
         return (true);
     }
 
-    Method RequestLine::stringToMethod(const std::string& methodString) const {
-        if (methodString == "GET") return (GET);
-        if (methodString == "POST") return (POST);
-        if (methodString == "DELETE") return (DELETE);
-        return (UNKNOWN);
+    Method RequestLine::getMethod() const {
+        return (_method);
     }
 }
