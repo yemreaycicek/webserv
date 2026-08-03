@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:51:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-25 / 14:19:35
+ * @ Modified time: 2026-08-03 / 11:36:16
  */
 
 #include "http/RequestLine.hpp"
@@ -55,7 +55,7 @@ namespace http {
         _uri = line.substr(firstSpace + 1, secondSpace - (firstSpace + 1));
 
         _version = line.substr(secondSpace + 1);
-        if (_version.find(' ') == std::string::npos) {
+        if (_version.find(' ') != std::string::npos) {
             throw http::Exception(http::status::BAD_REQUEST, "Trailing garbage in request line");
         }
         if (_version != "HTTP/1.1" && _version != "HTTP/1.0") {
