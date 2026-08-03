@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:28:16
+ * @ Modified time: 2026-08-03 / 16:20:39
  */
 
 #ifndef WEBSERV_HTPP_REQUEST_HPP
@@ -32,6 +32,13 @@ namespace http {
             ~Request();
 
             void parse(const std::string& chunk);
+
+            bool isComplete() const;
+            bool hasError() const;
+            Method getMethod() const;
+            const std::string& getUri() const;
+            const std::string& getBody() const;
+            std::string getHeader(const std::string& key) const;
     
         private:
             State _state;

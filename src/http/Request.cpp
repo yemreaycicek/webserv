@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:35:55
+ * @ Modified time: 2026-08-03 / 16:20:31
  */
 
 #include "http/Request.hpp"
@@ -59,6 +59,30 @@ namespace http {
                 io::errln(std::string("HTTPRequest 400 Bad Request: ") + e.what());
             #endif
         }
+    }
+
+    bool Request::isComplete() const {
+        return (_state == STATE_COMPLETE);
+    }
+
+    bool Request::hasError() const {
+        return (_state == STATE_ERROR);
+    }
+
+    Method Request::getMethod() const {
+        return (_requestLine.getMethod());
+    }
+
+    const std::string& Request::getUri() const {
+        return (_requestLine.getUri());
+    }
+
+    const std::string& Request::getBody() const {
+        return (_body.getContent());
+    }
+
+    std::string Request::getHeader(const std::string& key) const {
+        return (_header.get(key));
     }
 }
 
