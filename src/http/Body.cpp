@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-24 / 12:54:35
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-26 / 13:29:07
+ * @ Modified time: 2026-08-03 / 16:06:56
  */
 
 #include "http/Body.hpp"
@@ -66,5 +66,9 @@ namespace http {
             }
         }
         return (false);
+    }
+
+    const std::string& Body::getContent() const {
+        return (_content);
     }
 }
