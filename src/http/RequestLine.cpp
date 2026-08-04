@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:51:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 17:02:42
+ * @ Modified time: 2026-08-04 / 17:43:41
  */
 
 #include "http/RequestLine.hpp"
@@ -71,5 +71,9 @@ namespace http {
 
     const std::string& RequestLine::getUri() const {
         return (_uri);
+    }
+
+    const std::string& RequestLine::getVersion() const {
+        return (_version);
     }
 }

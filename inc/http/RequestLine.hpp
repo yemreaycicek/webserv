@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:43:04
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-03 / 16:15:29
+ * @ Modified time: 2026-08-04 / 17:43:22
  */
 
 #ifndef WEBSERV_HTTP_REQUEST_LINE_HPP
@@ -29,6 +29,7 @@ namespace http {
 
             Method getMethod() const;
             const std::string& getUri() const;
+            const std::string& getVersion() const;
     
         private:
             Method _method;
