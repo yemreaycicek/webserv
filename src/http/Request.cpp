@@ -2,10 +2,12 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 17:03:26
+ * @ Modified time: 2026-08-04 / 17:10:51
  */
 
 #include "http/Request.hpp"
+#include "http/Status.hpp"
+#include "http/Exception.hpp"
 
 #include <stdexcept>
 #include <string>
@@ -15,13 +17,14 @@
 #endif
 
 namespace http {
-    Request::Request() : _state(STATE_REQUEST_LINE) {}
+    Request::Request() : _state(STATE_REQUEST_LINE), _errorCode(status::OK) {}
     Request::Request(const Request& other) : _state(other._state), _rawBuffer(other._rawBuffer), _requestLine(other._requestLine), _header(other._header), _body(other._body) {}
     
     Request& Request::operator=(const Request& other) {
         if (this != &other) {
             _state = other._state;
             _rawBuffer = other._rawBuffer;
+            _errorCode = other._errorCode;
             _requestLine = other._requestLine;
             _header = other._header;
             _body = other._body;
@@ -53,10 +56,17 @@ namespace http {
                         return;
                 }
             }
-        } catch (const std::runtime_error& e) {
+        } catch (const http::Exception& e) {
             _state = STATE_ERROR;
+            _errorCode = e.getStatusCode();
             #ifdef DEBUG
-                io::errln(std::string("HTTPRequest 400 Bad Request: ") + e.what());
+                io::errln(std::string("HTTP parse error: ") + e.what());
+            #endif
+        } catch (const std::exception& e) {
+            _state = STATE_ERROR;
+            _errorCode = status::INTERNAL_SERVER_ERROR;
+            #ifdef DEBUG
+                io::errln(std::string("HTTP internal error: ") + e.what());
             #endif
         }
     }

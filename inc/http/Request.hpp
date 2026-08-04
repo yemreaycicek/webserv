@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-03 / 16:20:39
+ * @ Modified time: 2026-08-04 / 17:08:19
  */
 
 #ifndef WEBSERV_HTPP_REQUEST_HPP
@@ -14,6 +14,7 @@
 #include "http/RequestLine.hpp"
 #include "http/Header.hpp"
 #include "http/Body.hpp"
+#include "http/Status.hpp"
 
 namespace http {
     enum State {
@@ -43,6 +44,7 @@ namespace http {
         private:
             State _state;
             std::string _rawBuffer;
+            status::Code _errorCode;
 
             RequestLine _requestLine;
             Header _header;
