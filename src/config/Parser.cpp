@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 16:56:50
+ * @ Modified time: 2026-08-04 / 17:16:35
  */
 
 #include "config/Parser.hpp"
@@ -181,7 +181,7 @@ namespace config {
     }
 
     void Parser::parseReturn(LocationBlock& location) {
-        parseStatusCode(consumeWord("return"), "return");
+        location.redirect.code = parseStatusCode(consumeWord("return"), "return");
 
         std::string target = consumeWord("return");
         if (target.at(0) != '/' && target.find("://") == std::string::npos) {
