@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:50:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-26 / 13:26:38
+ * @ Modified time: 2026-08-04 / 17:48:36
  */
 
 #include "http/Header.hpp"
@@ -49,9 +49,16 @@ namespace http {
         if (colon == std::string::npos) {
             throw http::Exception(http::status::BAD_REQUEST, "Malformed header line (missing colon)");
         }
+        if (colon == 0 || std::isspace(line.at(colon - 1))) {
+             throw http::Exception(http::status::BAD_REQUEST, "Whitespace between header field name and colon");
+        }
 
         std::string key = str::tolower(line.substr(0, colon));
         std::string value = str::trim(line.substr(colon + 1));
+
+        if (isUniqueField(key) && has(key)) {
+            throw http::Exception(http::status::BAD_REQUEST, "Duplicate '" + key + "' header field");
+        }
         _fields[key] = value;
     }
 
@@ -85,5 +92,9 @@ namespace http {
     bool Header::isChunked() const {
         std::string transferEncoding = get("transfer-encoding");
         return (transferEncoding.find("chunked") != std::string::npos);
+    }
+
+    bool Header::isUniqueField(const std::string& key) const {
+        return (key == "host");
     }
 }

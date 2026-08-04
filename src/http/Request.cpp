@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 17:10:51
+ * @ Modified time: 2026-08-04 / 17:50:14
  */
 
 #include "http/Request.hpp"
@@ -93,6 +93,12 @@ namespace http {
 
     std::string Request::getHeader(const std::string& key) const {
         return (_header.get(key));
+    }
+
+    void Request::validateHeaders() const {
+        if (_requestLine.getVersion() == "HTTP/1.1" && !_header.has("host")) {
+            throw http::Exception(http::status::BAD_REQUEST, "Missing Host header field");
+        }
     }
 }
 

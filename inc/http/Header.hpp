@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:47:15
  * @ Modified by: yaycicek
- * @ Modified time: 2026-06-24 / 13:14:36
+ * @ Modified time: 2026-08-04 / 17:45:51
  */
 
 #ifndef WEBSERV_HTTP_HEADER_HPP
@@ -31,6 +31,8 @@ namespace http {
             std::map<std::string, std::string> _fields;
 
             void addHeaderLine(const std::string& line);
+
+            bool isUniqueField(const std::string& key) const;
     };
 }
 

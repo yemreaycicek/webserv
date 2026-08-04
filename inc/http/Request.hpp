@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 17:08:19
+ * @ Modified time: 2026-08-04 / 17:49:22
  */
 
 #ifndef WEBSERV_HTPP_REQUEST_HPP
@@ -49,6 +49,8 @@ namespace http {
             RequestLine _requestLine;
             Header _header;
             Body _body;
+
+            void validateHeaders() const;
     };
 }
 
