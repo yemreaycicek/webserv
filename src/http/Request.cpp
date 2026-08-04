@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-03 / 16:20:31
+ * @ Modified time: 2026-08-04 / 17:03:26
  */
 
 #include "http/Request.hpp"
@@ -16,7 +16,7 @@
 
 namespace http {
     Request::Request() : _state(STATE_REQUEST_LINE) {}
-    Request::Request(const Request& other) : _state(other._state), _rawBuffer(other._rawBuffer) {}
+    Request::Request(const Request& other) : _state(other._state), _rawBuffer(other._rawBuffer), _requestLine(other._requestLine), _header(other._header), _body(other._body) {}
     
     Request& Request::operator=(const Request& other) {
         if (this != &other) {

@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:51:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-03 / 16:03:06
+ * @ Modified time: 2026-08-04 / 17:02:42
  */
 
 #include "http/RequestLine.hpp"
@@ -15,7 +15,7 @@
 
 namespace http {
     RequestLine::RequestLine() : _method(UNKNOWN) {}
-    RequestLine::RequestLine(const RequestLine& other) : _method(other._method) {}
+    RequestLine::RequestLine(const RequestLine& other) : _method(other._method), _uri(other._uri), _version(other._version) {}
     
     RequestLine& RequestLine::operator=(const RequestLine& other) {
         if (this != &other) {
