@@ -1,8 +1,8 @@
 /**
  * @ Author: akosaca
  * @ Create Time: 2026-08-01 / 14:40:55
- * @ Modified by: akosaca
- * @ Modified time: 2026-08-01 / 15:14:25
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-08-04 / 16:40:04
  */
 
 #include "utils/str.hpp"
@@ -22,7 +22,7 @@ namespace exec {
         return ("Content-Length: " + str::to_string(body.length()) + "\r\n" + "Content-Type: " + contentType + "\r\n" + "Connection: close\r\n");
     }
 
-    std::string ResponseBuilder::build(http::status::Code status, const std::string& body, const std::string& contentType) {
+    std::string ResponseBuilder::build(http::status::Code status, const std::string& body, const std::string& contentType) const {
         return (buildStatusLine(status) + buildHeaders(body, contentType) + "\r\n" + body);
     }
 }
