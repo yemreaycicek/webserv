@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 15:30:31
+ * @ Modified time: 2026-08-04 / 16:56:21
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -15,13 +15,21 @@
 #include "config/Lexer.hpp"
 
 namespace config {
+    struct Redirect {
+        int code;
+        std::string target;
+
+        Redirect() : code(0) {}
+        bool isSet() const { return (code != 0); }
+    };
+
     struct LocationBlock {
         std::string path;
         std::string root;
         std::string index;
         bool autoindex;
         std::vector<std::string> allowMethods;
-        std::string redirect;
+        Redirect redirect;
         bool uploadEnable;
         std::string uploadStore;
 
@@ -90,7 +98,7 @@ namespace config {
             void parseListenAddress(const std::string& value, ServerBlock& server) const;
             std::size_t parseSize(const std::string& value, const std::string& directiveName) const;
             int parseStatusCode(const std::string& value, const std::string& directiveName) const;
-            void validatePath(const std::string& path, const std::string& directiveName, const bool mustBeURI) const;
+            void validatePath(const std::string& path, const std::string& directiveName) const;
             bool parseBoolean(const std::string& value, const std::string& directiveName) const;
 
             class SyntaxError : public Exception {

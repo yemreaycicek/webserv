@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-17 / 14:02:31
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 15:30:37
+ * @ Modified time: 2026-08-04 / 16:57:43
  */
 
 #include "config/Debug.hpp"
@@ -139,8 +139,8 @@ namespace config {
         if (location.autoindex) {
             locationLines.push_back(std::string("autoindex: ") + (location.autoindex ? "on" : "off"));
         }
-        if (!location.redirect.empty()) {
-            locationLines.push_back("return: " + location.redirect);
+        if (location.redirect.isSet()) {
+            locationLines.push_back("return: " + str::to_string(location.redirect.code) + " " + location.redirect.target);
         }
         if (location.uploadEnable) {
             locationLines.push_back("upload_enable: on");

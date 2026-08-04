@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 15:30:48
+ * @ Modified time: 2026-08-04 / 16:56:50
  */
 
 #include "config/Parser.hpp"
@@ -150,7 +150,7 @@ namespace config {
         std::string line = consumeWord("error_page");
         int statusCode = parseStatusCode(line, "error_page");
         std::string path = consumeWord("error_page");
-        validatePath(path, "error_page", false);
+        validatePath(path, "error_page");
         server.errorPages[statusCode] = path;
     }
 
@@ -181,12 +181,13 @@ namespace config {
     }
 
     void Parser::parseReturn(LocationBlock& location) {
-        std::string statusCodeString = consumeWord("return");
-        parseStatusCode(statusCodeString, "return");
+        parseStatusCode(consumeWord("return"), "return");
 
-        std::string urlString = consumeWord("return");
-        validatePath(urlString, "return", true);
-        location.redirect = statusCodeString + " " + urlString;
+        std::string target = consumeWord("return");
+        if (target.at(0) != '/' && target.find("://") == std::string::npos) {
+            throw SyntaxError("Redirect target '" + target + "' in directive 'return' must be a path or an absolute URL");
+        }
+        location.redirect.target = target;
     }
 
     void Parser::parseUploadEnable(LocationBlock& location) {
@@ -220,7 +221,7 @@ namespace config {
             throw SyntaxError("Location path '" + location.path + "' must begin with a '/' character!");
         }
         
-        if (location.root.empty() && location.redirect.empty()) {
+        if (location.root.empty() && !location.redirect.isSet()) {
             throw SyntaxError("Location '" + location.path + "' must have either a 'root' or a 'return' directive!");
         }
 
@@ -315,9 +316,9 @@ namespace config {
         return (code);
     }
 
-    void Parser::validatePath(const std::string& path, const std::string& directiveName, const bool mustBeURI) const {
-        if (mustBeURI && path.at(0) != '/') {
-            throw SyntaxError("URI path '" + path + "' in directive '" + directiveName + "' must begin with '/'");
+    void Parser::validatePath(const std::string& path, const std::string& directiveName) const {
+        if (path.at(0) != '/') {
+            throw SyntaxError("Path '" + path + "' in directive '" + directiveName + "' must begin with '/'");
         }   
     }
 
