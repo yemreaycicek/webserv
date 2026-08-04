@@ -2,12 +2,11 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:50:32
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 17:48:36
+ * @ Modified time: 2026-08-04 / 18:23:34
  */
 
 #include "http/Header.hpp"
 
-#include <cstdlib>
 #include <stdexcept>
 #include <string>
 
@@ -80,21 +79,47 @@ namespace http {
             return (0);
         }
 
-        char* endPtr;
-        std::size_t contentLength = std::strtoul(value.c_str(), &endPtr, 10);
-        if ((*endPtr) != '\0') {
-            throw http::Exception(http::status::BAD_REQUEST, "Invalid Content-Length value");
+        for (std::size_t i = 0; i < value.length(); i++) {
+            if (!std::isdigit(value.at(i))) {
+                throw http::Exception(http::status::BAD_REQUEST, "Invalid Content-Length value");
+            }
+        }
+        
+        std::size_t contentLength;
+        if (!str::to_numeric(value, contentLength)) {
+            throw http::Exception(http::status::BAD_REQUEST, "Content-Length value out of range");
         }
         return (contentLength);
-
     }
 
     bool Header::isChunked() const {
-        std::string transferEncoding = get("transfer-encoding");
-        return (transferEncoding.find("chunked") != std::string::npos);
+        std::string value = get("transfer-encoding");
+        if (value.length() == 0) {   
+            return (false);
+        }
+
+        std::string lastCoding = 0;
+        std::size_t start = 0;
+        while (start <= value.length()) {
+            std::size_t comma = value.find(",", start);
+            if (comma == std::string::npos) {
+                comma = value.length();
+            }
+
+            std::string coding = str::tolower(str::trim(value.substr(start, comma - start)));
+            if (!coding.empty()) {
+                lastCoding = coding;
+            }
+            start = comma + 1;
+        }
+
+        if (lastCoding != "chunked") {
+            throw http::Exception(http::status::BAD_REQUEST, "Transfer-Encoding must end with the chunked coding");
+        }
+        return (true);
     }
 
     bool Header::isUniqueField(const std::string& key) const {
-        return (key == "host");
+        return (key == "host" || key == "content-length");
     }
 }

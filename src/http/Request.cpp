@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 17:50:14
+ * @ Modified time: 2026-08-04 / 18:24:32
  */
 
 #include "http/Request.hpp"
@@ -98,6 +98,10 @@ namespace http {
     void Request::validateHeaders() const {
         if (_requestLine.getVersion() == "HTTP/1.1" && !_header.has("host")) {
             throw http::Exception(http::status::BAD_REQUEST, "Missing Host header field");
+        }
+
+        if (_header.has("transfer-encoding") && _header.has("content-length")) {
+            throw http::Exception(http::status::BAD_REQUEST, "Both Transfer-Encoding and Content-Length present");
         }
     }
 }
