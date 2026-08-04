@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-11 / 21:04:34
+ * @ Modified time: 2026-08-04 / 15:30:48
  */
 
 #include "config/Parser.hpp"
@@ -42,7 +42,6 @@ namespace config {
 
     void Parser::initHandlers() {
         _serverHandler["listen"] = &Parser::parseListen;
-        _serverHandler["client_header_buffer_size"] = &Parser::parseClientHeaderBufferSize;
         _serverHandler["client_max_body_size"] = &Parser::parseClientMaxBodySize;
         _serverHandler["error_page"] = &Parser::parseErrorPage;
 
@@ -141,10 +140,6 @@ namespace config {
 
     void Parser::parseListen(ServerBlock& server) {
         parseListenAddress(consumeWord("listen"), server);
-    }
-
-    void Parser::parseClientHeaderBufferSize(ServerBlock& server) {
-        server.clientHeaderBufferSize = parseSize(consumeWord("client_header_buffer_size"), "client_header_buffer_size");
     }
 
     void Parser::parseClientMaxBodySize(ServerBlock& server) {

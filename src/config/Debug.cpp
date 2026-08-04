@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-17 / 14:02:31
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-11 / 21:17:09
+ * @ Modified time: 2026-08-04 / 15:30:37
  */
 
 #include "config/Debug.hpp"
@@ -96,9 +96,6 @@ namespace config {
         std::vector<std::string> serverLines;
         for (std::size_t i = 0; i < server.listen.size(); i++) {
             serverLines.push_back("listen: " + server.listen.at(i));
-        }
-        if (server.clientHeaderBufferSize != 0) {
-            serverLines.push_back("client_header_buffer_size: " + str::to_string(server.clientHeaderBufferSize));
         }
         if (server.clientMaxBodySize != 0) {
             serverLines.push_back("client_max_body_size: " + str::to_string(server.clientMaxBodySize));

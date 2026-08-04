@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-11 / 21:14:52
+ * @ Modified time: 2026-08-04 / 15:30:31
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -30,12 +30,11 @@ namespace config {
 
     struct ServerBlock {
         std::vector<std::string> listen;
-        std::size_t clientHeaderBufferSize;
         std::size_t clientMaxBodySize;
         std::map<std::size_t, std::string> errorPages;
         std::vector<LocationBlock> locations;
 
-        ServerBlock() : clientHeaderBufferSize(0), clientMaxBodySize(0) {}
+        ServerBlock() : clientMaxBodySize(0) {}
     };
 
     class Parser {
@@ -67,7 +66,6 @@ namespace config {
             void parseLocationDirective(LocationBlock& location);
 
             void parseListen(ServerBlock& server);
-            void parseClientHeaderBufferSize(ServerBlock& server);
             void parseClientMaxBodySize(ServerBlock& server);
             void parseErrorPage(ServerBlock& server);
 
