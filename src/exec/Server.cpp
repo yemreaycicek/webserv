@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-06 / 13:44:00
+ * @ Modified time: 2026-08-06 / 13:56:09
  */
 
 #include "exec/Server.hpp"
@@ -72,16 +72,24 @@ namespace exec {
         if (revents & POLLIN) {
             conCl->onReadable();
             if (conCl->isRequestComplete()) {
-                //std::string buf = conCl->getRequestData();
-                // std::string res =
-                // "HTTP/1.1 200 OK\r\n"
-                // "Content-Length: 0\r\n"
-                // "Connection: close\r\n"
-                // "\r\n";
-                const config::ServerBlock& sb = _config.getServerBlock(_clAddr[fd]);
-                std::string res = _executor.execute(sb, conCl->getRequest());
+                std::string res;
+                try {
+                    const config::ServerBlock& sb = _config.getServerBlock(_clAddr[fd]);
+                    res = _executor.execute(sb, conCl->getRequest());
+                } catch(const std::exception& e) {
+                    res = "HTTP/1.1 500 Internal Server Error\r\n "
+                    "Content-Length: 0\r\n"
+                    "Connection: close\r\n\r\n";
+                }
                 conCl->setResponse(res);
                 _poller.setFdEvents(fd, POLLOUT);                
+            }
+            else if (conCl->getRequest().hasError()) {
+                std::string res = "HTTP/1.1 400 Bad Request\r\n"
+                "Content-Length: 0\r\n"
+                "Connection: close\r\n\r\n";
+                conCl->setResponse(res);
+                _poller.setFdEvents(fd, POLLOUT);
             }
         }
         if (revents & POLLOUT) {
