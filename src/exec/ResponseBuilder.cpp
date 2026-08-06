@@ -1,8 +1,8 @@
 /**
  * @ Author: akosaca
  * @ Create Time: 2026-08-01 / 14:40:55
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 16:40:04
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-06 / 13:26:27
  */
 
 #include "utils/str.hpp"
@@ -24,5 +24,14 @@ namespace exec {
 
     std::string ResponseBuilder::build(http::status::Code status, const std::string& body, const std::string& contentType) const {
         return (buildStatusLine(status) + buildHeaders(body, contentType) + "\r\n" + body);
+    }
+
+    std::string ResponseBuilder::buildRedirect(http::status::Code status, const std::string& location) const {
+        std::string res = buildStatusLine(status);
+        res += "Location: " + location + "\r\n";
+        res += "Content-Length: 0\r\n";
+        res += "Connection: close\r\n";
+        res += "\r\n";
+        return res;
     }
 }

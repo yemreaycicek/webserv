@@ -1,8 +1,8 @@
 /**
  * @ Author: akosaca
  * @ Create Time: 2026-08-01 / 14:21:08
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 16:40:13
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-06 / 13:25:07
  */
 
 
@@ -17,6 +17,7 @@ namespace exec {
             ~ResponseBuilder();
     
             std::string build(http::status::Code status, const std::string& body, const std::string& contentType) const;
+            std::string buildRedirect(http::status::Code status, const std::string& location) const;
         private:
             std::string buildStatusLine(http::status::Code status) const;
             std::string buildHeaders(const std::string& body, const std::string& contentType) const;
