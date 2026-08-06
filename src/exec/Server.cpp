@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 17:54:41
+ * @ Modified time: 2026-08-06 / 13:44:00
  */
 
 #include "exec/Server.hpp"
@@ -82,8 +82,6 @@ namespace exec {
                 std::string res = _executor.execute(sb, conCl->getRequest());
                 conCl->setResponse(res);
                 _poller.setFdEvents(fd, POLLOUT);                
-                conCl->setResponse(res);
-                _poller.setFdEvents(fd, POLLOUT);
             }
         }
         if (revents & POLLOUT) {
