@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-06 / 13:56:09
+ * @ Modified time: 2026-08-06 / 14:58:26
  */
 
 #include "exec/Server.hpp"
@@ -95,7 +95,7 @@ namespace exec {
         if (revents & POLLOUT) {
             conCl->onWritable();
             if (conCl->getState() == CLOSING){
-                delCl(fd);
+                _toClose.push_back(fd);
             }
         }
     }
@@ -104,13 +104,14 @@ namespace exec {
         while (true) {
             std::vector<pollfd> pl = _poller.pollReady(120);
             for (size_t i = 0; i < pl.size(); ++i) {
-                if (_lsAddr.count(pl[i].fd)) {
-                    acceptCl(pl[i].fd);
-                }
-                else {
-                    handleCl(pl[i].fd, pl[i].revents);
-                }
+                if (_lsAddr.count(pl[i].fd))    acceptCl(pl[i].fd);
+                else                            handleCl(pl[i].fd, pl[i].revents);
             }
+            for (size_t i = 0; i < _toClose.size(); ++i) {
+                delCl(_toClose[i]);
+            }
+            _toClose.clear();
+
         }
     }
 }
