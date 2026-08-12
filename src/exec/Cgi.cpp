@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 17:11:53
+ * @ Modified time: 2026-08-12 / 17:16:39
  */
 
 
@@ -77,6 +77,10 @@ namespace exec {
 
     int Cgi::getInFd() const {
         return (_state);
+    }
+
+    int Cgi::getInFd() const {
+        return (_inWrFd);
     }
 
     const std::string& Cgi::rawOutput() const {
