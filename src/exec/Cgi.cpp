@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 15:08:57
+ * @ Modified time: 2026-08-12 / 15:13:27
  */
 
 
@@ -22,7 +22,8 @@ namespace exec {
         env.push_back("REQUEST_METHOD=" + req.method);
         env.push_back("QUERY_STRING=" + req.query);
         env.push_back("SCRIPT_NAME=" + req.path);
-        
+        std::map<std::string, std::string>::const_iterator it = req.headers.find("Content-Type");
+        if (it != req.headers.end()) env.push_back("CONTENT_TYPE=" + it->second);
         std::stringstream ss;
         ss << req.body.size();
         env.push_back("CONTENT_LENGTH=" + ss.str());
