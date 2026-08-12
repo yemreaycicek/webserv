@@ -2,13 +2,14 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 15:13:27
+ * @ Modified time: 2026-08-12 / 16:12:40
  */
 
 
 #include <unistd.h>
 #include "exec/Cgi.hpp"
 #include <sstream>
+#include <algorithm>
 
 namespace exec {
     Cgi::Cgi() : _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0) {}
@@ -28,10 +29,20 @@ namespace exec {
         ss << req.body.size();
         env.push_back("CONTENT_LENGTH=" + ss.str());
 
+        for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
+            std::string envName;
+            for (size_t i = 0; i < it->first.size(); ++i) {
+                if (it->first[i] == '-') envName += '_';
+                else envName += std::toupper(static_cast<unsigned char>(it->first[i]));
+            }
+            if (envName == "CONTENT_TYPE" || envName == "CONTENT_LENGTH") continue;
+            env.push_back("HTTP_" + envName + "=" + it->second);
+        }
         return env;
     }
 
     void Cgi::run(const RequestData& req) {
+        _input = req.body;
         int inPipe[2];
         int outPipe[2];
         if (pipe(inPipe) == -1) {
@@ -61,8 +72,13 @@ namespace exec {
             close(outPipe[0]);
             close(outPipe[1]);
             char* av[] = {(char *)"/usr/bin/python3", (char *)"/home/monster/code/webserv/src/exec/selam.py", NULL};
-            char* envp[] = { NULL };
-            execve(av[0], av, envp);
+            std::vector<std::string> envStr = buildEnv(req);
+            std::vector<char*> envp;
+            for (std::vector<std::string>::iterator it = envStr.begin(); it != envStr.end(); ++it) {
+                envp.push_back(const_cast<char*>(it->c_str()));
+            }
+            envp.push_back(NULL);
+            execve(av[0], av, &envp[0]);
             _exit(1);
         } else {
             _inWrFd = inPipe[1];
