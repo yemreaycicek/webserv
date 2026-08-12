@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 16:37:32
+ * @ Modified time: 2026-08-12 / 16:40:28
  */
 
 
@@ -104,6 +104,13 @@ namespace exec {
             close(inPipe[0]);
             close(outPipe[1]);
             _state = READING;
+            if (_input.empty()) {
+                close(_inWrFd);
+                _inWrFd = -1;
+                _state = READING;
+            } else {
+                _state = WRITING;
+            }
         }
     }
 }
