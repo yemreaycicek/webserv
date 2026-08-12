@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 17:05:21
+ * @ Modified time: 2026-08-12 / 17:07:41
  */
 
 
@@ -79,6 +79,9 @@ namespace exec {
         return (_state);
     }
 
+    const std::string& Cgi::rawOutput() const {
+        return _output;
+    }
 
     void Cgi::run(const RequestData& req) {
         int inPipe[2];

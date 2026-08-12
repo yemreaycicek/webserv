@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 20:22:57
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 14:41:11
+ * @ Modified time: 2026-08-12 / 17:03:49
  */
 
 
@@ -41,6 +41,7 @@ namespace exec {
             int     getInFd()  const; //in fd sayısını örğenmek için
             int     getOutFd() const; //out fd sayısını örğenmek için
             void    cleanup(); //temizlik yapmka için
+            const std::string& rawOutput() const;
         private:
             Cgi(const Cgi&);
             Cgi& operator=(const Cgi&);
