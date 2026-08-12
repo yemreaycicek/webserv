@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 16:12:40
+ * @ Modified time: 2026-08-12 / 16:17:02
  */
 
 
@@ -80,7 +80,8 @@ namespace exec {
             envp.push_back(NULL);
             execve(av[0], av, &envp[0]);
             _exit(1);
-        } else {
+        }
+        else {
             _inWrFd = inPipe[1];
             _outRdFd = outPipe[0];
             close(inPipe[0]);
