@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 16:53:02
+ * @ Modified time: 2026-08-12 / 17:05:21
  */
 
 
@@ -74,6 +74,11 @@ namespace exec {
             _state = FAILED;
         }
     }
+
+    int Cgi::getInFd() const {
+        return (_state);
+    }
+
 
     void Cgi::run(const RequestData& req) {
         int inPipe[2];
