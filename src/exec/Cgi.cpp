@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 16:40:28
+ * @ Modified time: 2026-08-12 / 16:53:02
  */
 
 
@@ -55,6 +55,23 @@ namespace exec {
             close (_inWrFd);
             _inWrFd = -1;
             _state = READING;
+        }
+    }
+
+    void Cgi::onReadable() {
+        char buf[4096];
+        ssize_t n;
+        n = read(_outRdFd, buf, sizeof(buf));
+        if (n > 0) {
+            _output.append(buf, n);
+        }
+        else if (n == 0) {
+            close(_outRdFd);
+            _outRdFd = -1;
+            _state = DONE;
+        }
+        else {
+            _state = FAILED;
         }
     }
 
