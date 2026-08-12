@@ -2,14 +2,14 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 17:07:41
+ * @ Modified time: 2026-08-12 / 17:11:53
  */
 
 
 #include <unistd.h>
 #include "exec/Cgi.hpp"
 #include <sstream>
-#include <algorithm>
+#include <sys/wait.h>
 
 namespace exec {
     Cgi::Cgi() : _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0) {}
@@ -81,6 +81,21 @@ namespace exec {
 
     const std::string& Cgi::rawOutput() const {
         return _output;
+    }
+
+    void Cgi::cleanup() {
+        if (_inWrFd != -1) {
+            close(_inWrFd);
+            _inWrFd = -1;
+        }
+        if (_outRdFd != -1) {
+            close(_outRdFd);
+            _outRdFd = -1;
+        }
+        if (_pid != -1) {
+            waitpid(_pid, NULL, 0);
+            _pid = -1;
+        }
     }
 
     void Cgi::run(const RequestData& req) {
