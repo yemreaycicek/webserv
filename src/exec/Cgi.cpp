@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 16:17:02
+ * @ Modified time: 2026-08-12 / 16:37:32
  */
 
 
@@ -41,8 +41,24 @@ namespace exec {
         return env;
     }
 
+    void Cgi::onWritable() {
+        ssize_t n;
+        n = write(_inWrFd, (_input.c_str() + _inputOffset), (_input.size() - _inputOffset));
+        if (n > 0) {
+            _inputOffset += n;
+        }
+        else if (n < 0) {
+            _state = FAILED;
+            return ;
+        }
+        if (_inputOffset == _input.size()) {
+            close (_inWrFd);
+            _inWrFd = -1;
+            _state = READING;
+        }
+    }
+
     void Cgi::run(const RequestData& req) {
-        _input = req.body;
         int inPipe[2];
         int outPipe[2];
         if (pipe(inPipe) == -1) {
@@ -82,6 +98,7 @@ namespace exec {
             _exit(1);
         }
         else {
+            _input = req.body;
             _inWrFd = inPipe[1];
             _outRdFd = outPipe[0];
             close(inPipe[0]);
