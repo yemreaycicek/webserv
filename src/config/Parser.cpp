@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 17:16:35
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-13 / 20:00:39
  */
 
 #include "config/Parser.hpp"
@@ -52,8 +52,18 @@ namespace config {
         _locationHandler["return"] = &Parser::parseReturn;
         _locationHandler["upload_enable"] = &Parser::parseUploadEnable;
         _locationHandler["upload_store"] = &Parser::parseUploadStore;
+        _locationHandler["cgi_extension"] = &Parser::parseCgiExtension; //!check
+        _locationHandler["cgi_pass"] = &Parser::parseCgiPass;           //!check
     }
 
+    void Parser::parseCgiExtension(LocationBlock& location) {
+        location.cgiExtension = consumeWord("cgi_extension");
+    }
+    
+    void Parser::parseCgiPass(LocationBlock& location) {
+        location.cgiPass = consumeWord("cgi_pass");
+    }
+    
     std::vector<ServerBlock> Parser::parse() {
         std::vector<ServerBlock> servers;
 
