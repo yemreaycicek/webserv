@@ -40,6 +40,8 @@ namespace http {
             const std::string& getUri() const;
             const std::string& getBody() const;
             std::string getHeader(const std::string& key) const;
+
+            const std::map<std::string, std::string>& getHeaders() const; //! check
     
         private:
             State _state;

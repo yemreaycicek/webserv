@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 16:56:21
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-13 / 19:49:21
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -32,6 +32,9 @@ namespace config {
         Redirect redirect;
         bool uploadEnable;
         std::string uploadStore;
+        std::string cgiExtension;   //! ".py"
+        std::string cgiPass;        //! "/usr/bin/python3"
+
 
         LocationBlock() : autoindex(false), uploadEnable(false) {}
     };

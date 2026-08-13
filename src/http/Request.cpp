@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 18:24:32
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-13 / 19:17:56
  */
 
 #include "http/Request.hpp"
@@ -103,6 +103,10 @@ namespace http {
         if (_header.has("transfer-encoding") && _header.has("content-length")) {
             throw http::Exception(http::status::BAD_REQUEST, "Both Transfer-Encoding and Content-Length present");
         }
+    }
+
+    const std::map<std::string, std::string>& Request::getHeaders() const {
+        return (_header.getHeaders());
     }
 }
 

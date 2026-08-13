@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:50:32
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 18:23:34
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-13 / 19:16:02
  */
 
 #include "http/Header.hpp"
@@ -121,5 +121,9 @@ namespace http {
 
     bool Header::isUniqueField(const std::string& key) const {
         return (key == "host" || key == "content-length");
+    }
+
+    const std::map<std::string, std::string>& Header::getHeaders() const {
+        return (_fields);
     }
 }
