@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-02 / 22:51:17
+ * @ Modified time: 2026-08-13 / 20:38:59
  */
 
 
@@ -42,6 +42,7 @@ namespace exec {
             std::string     buildError(http::status::Code code, const config::ServerBlock& sb) const;
             std::string     handlePost(const config::ServerBlock& sb, const http::Request& r);
             std::string     handleDelete(const config::ServerBlock& sb, const http::Request& r);
+            RequestData     buildRequestData(const http::Request& r) const;
 
             Resolver        _resolver;
             ResponseBuilder _responseBuilder;

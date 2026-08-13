@@ -2,11 +2,12 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-06 / 13:30:59
+ * @ Modified time: 2026-08-13 / 20:54:15
  */
 
 #include "exec/Executor.hpp"
 #include "http/RequestLine.hpp"
+#include "exec/Cgi.hpp"
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -157,6 +158,39 @@ namespace exec {
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
 
+    RequestData Executor::buildRequestData(const http::Request& r) const {
+        RequestData rd;
+        http::Method m = r.getMethod();
+        switch(m) {
+            case http::GET:
+                rd.method = "GET";
+                break;
+            case http::POST:
+                rd.method = "POST";
+                break;
+            case http::DELETE:
+                rd.method = "DELETE";
+                break;
+            default:
+                rd.method = "";
+                break;
+        }
+
+        std::string uri = r.getUri();
+        std::string::size_type pos = uri.find('?');
+        if (pos == std::string::npos) {
+            rd.path = uri;
+            rd.query = "";
+        }
+        else {
+            rd.path = uri.substr(0, pos);
+            rd.query = uri.substr(pos + 1);
+        }
+        rd.body = r.getBody();
+        rd.headers = r.getHeaders();
+        return (rd);
+    }
+    
     std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r) {
         exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
         if (rp.location != NULL && rp.location->redirect.isSet()) {
