@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 17:23:50
+ * @ Modified time: 2026-08-14 / 20:23:51
  */
 
 
@@ -12,7 +12,7 @@
 #include <sys/wait.h>
 
 namespace exec {
-    Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0) {}
+    Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _startedAt(0) {}
     Cgi::~Cgi() {}
 
     std::vector<std::string> Cgi::buildEnv(const RequestData& req) const {
@@ -110,6 +110,14 @@ namespace exec {
         }
     }
 
+    bool Cgi::isTimedOut(int limitSec) const {
+        return ((time(NULL) - _startedAt) >= limitSec);
+    }
+
+    pid_t Cgi::getPid() const {
+        return _pid;
+    }
+
     void Cgi::run(const RequestData& req, const std::string& interpreter, const std::string& scriptPath) {
         int inPipe[2];
         int outPipe[2];
@@ -150,6 +158,7 @@ namespace exec {
             _exit(1);
         }
         else {
+            _startedAt = time(NULL);
             _input = req.body;
             _inWrFd = inPipe[1];
             _outRdFd = outPipe[0];

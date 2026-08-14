@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 20:22:57
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 15:02:08
+ * @ Modified time: 2026-08-14 / 20:23:43
  */
 
 
@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <sys/types.h> 
+#include <ctime>
 
 namespace exec {
     enum State {
@@ -49,6 +50,9 @@ namespace exec {
             void    cleanup(); //temizlik yapmka için
             int getClientFd() const;
             const std::string& rawOutput() const;
+            bool isTimedOut(int limitSec) const;
+            pid_t getPid() const;
+
         private:
             Cgi(const Cgi&);
             Cgi& operator=(const Cgi&);
@@ -62,6 +66,7 @@ namespace exec {
             std::string _input;
             std::size_t _inputOffset;
             std::string _output;
+            time_t _startedAt;
     };
 }
 
