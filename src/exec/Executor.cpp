@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-13 / 22:37:13
+ * @ Modified time: 2026-08-14 / 17:52:49
  */
 
 #include "exec/Executor.hpp"
@@ -201,7 +201,10 @@ namespace exec {
     
     std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi) {
         outCgi.isCgi = false;
-        exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
+        std::string uri = r.getUri();
+        std::string::size_type qpos = uri.find('?');
+        std::string pathOnly = (qpos == std::string::npos) ? uri : uri.substr(0, qpos);
+        exec::ResolvedPath rp = _resolver.resolve(sb, pathOnly);
         if (rp.location != NULL && rp.location->redirect.isSet()) {
             return _responseBuilder.buildRedirect(static_cast<http::status::Code>(rp.location->redirect.code), rp.location->redirect.target);
         }
