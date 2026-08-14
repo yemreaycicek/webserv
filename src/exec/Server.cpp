@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 20:44:38
+ * @ Modified time: 2026-08-14 / 20:49:12
  */
 
 #include "exec/Server.hpp"
@@ -186,15 +186,6 @@ namespace exec {
                 else if (_cgi.count(pl[i].fd))  handleCgi(pl[i].fd);
                 else                            handleCl(pl[i].fd, pl[i].revents);
             }
-            for (size_t i = 0; i < _toClose.size(); ++i) {
-                delCl(_toClose[i]);
-            }
-            for (size_t i = 0; i < _cgiToClose.size(); ++i) {
-                delCgi(_cgiToClose[i]);
-            }
-            _cgiToClose.clear();
-            _toClose.clear();
-            
             for (std::map<int, Cgi*>::const_iterator it = _cgi.begin(); it != _cgi.end(); ++it) {
                 if (it->second->getState() == WRITING || it->second->getState() == READING) {
                     if (it->second->isTimedOut(CGI_TIMEOUT_SEC)) {
@@ -205,6 +196,14 @@ namespace exec {
                     }
                 }
             }
+            for (size_t i = 0; i < _toClose.size(); ++i) {
+                delCl(_toClose[i]);
+            }
+            for (size_t i = 0; i < _cgiToClose.size(); ++i) {
+                delCgi(_cgiToClose[i]);
+            }
+            _cgiToClose.clear();
+            _toClose.clear();
         }
     }
 }
