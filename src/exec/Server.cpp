@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 14:57:19
+ * @ Modified time: 2026-08-14 / 15:54:24
  */
 
 #include "exec/Server.hpp"
@@ -121,7 +121,7 @@ namespace exec {
             }
         }
     }
-    void handleCgi(int ls_fd) {
+    void Server::handleCgi(int ls_fd) {
         
     }
     void Server::run() {
