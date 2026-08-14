@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 16:04:39
+ * @ Modified time: 2026-08-14 / 16:07:12
  */
 
 #include "exec/Server.hpp"
@@ -121,10 +121,10 @@ namespace exec {
             }
         }
     }
-    void Server::handleCgi(int ls_fd) {
-        Cgi* cgi = _cgi[ls_fd];
-        if (cgi->getInFd()) cgi->onWritable();
-        else if (cgi->getOutFd()) cgi->onReadable();
+    void Server::handleCgi(int fd) {
+        Cgi* cgi = _cgi[fd];
+        if (fd == cgi->getInFd()) cgi->onWritable();
+        else if (fd == cgi->getOutFd()) cgi->onReadable();
         //if (cgi->getState() == DONE || cgi->getState() == FAILED) 
     }
     void Server::run() {

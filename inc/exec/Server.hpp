@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:41
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 15:54:16
+ * @ Modified time: 2026-08-14 / 16:07:26
  */
 
 #ifndef WEBSERV_EXEC_SERVER_HPP
@@ -36,7 +36,7 @@ namespace exec {
             void                                handleCl(int fd, short revents);
             void                                acceptCl(int ls_fd);
             void                                buildCgi(int fd, CgiInfo& info);
-            void                                handleCgi(int ls_fd);
+            void                                handleCgi(int fd);
 
             const config::Router&               _config;
             exec::Poller                        _poller;
