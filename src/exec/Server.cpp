@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 16:32:53
+ * @ Modified time: 2026-08-14 / 17:45:47
  */
 
 #include "exec/Server.hpp"
@@ -81,7 +81,7 @@ namespace exec {
             _poller.addFd(inFd, POLLOUT);
             _cgi[inFd] = cgi;
         }
-
+        _poller.setFdEvents(fd, 0);
     }
     void Server::handleCl(int fd, short revents) {
         exec::Connection *conCl = _connections[fd];
@@ -126,20 +126,20 @@ namespace exec {
         Cgi* cgi = _cgi[fd];
         if (fd == cgi->getInFd()) cgi->onWritable();
         else if (fd == cgi->getOutFd()) cgi->onReadable();
-        if (cgi->getState() == DONE || cgi->getState() == FAILED) _cgiToClose.push_back(cgi);
+        if (cgi->getState() == DONE || cgi->getState() == FAILED) {
+            std::map<int, Cgi*>::iterator it = _cgi.begin();
+            while (it != _cgi.end()) {
+                if (it->second == cgi) {
+                    _poller.deleteFd(it->first);
+                    std::map<int, Cgi*>::iterator toErase = it++;
+                    _cgi.erase(toErase);
+                } else ++it;
+            }
+            _cgiToClose.push_back(cgi);
+        }
     }
 
     void Server::delCgi(Cgi* cgi) {
-        std::map<int, Cgi*>::iterator it = _cgi.begin();
-        while (it != _cgi.end()) {
-            if (it->second == cgi) {
-                _poller.deleteFd(it->first);
-                std::map<int, Cgi*>::iterator toErase = it++;
-                _cgi.erase(toErase);
-            } else {
-                ++it;
-            }
-        }
         cgi->cleanup();
         delete cgi;
     }
