@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 15:54:24
+ * @ Modified time: 2026-08-14 / 16:04:39
  */
 
 #include "exec/Server.hpp"
@@ -122,7 +122,10 @@ namespace exec {
         }
     }
     void Server::handleCgi(int ls_fd) {
-        
+        Cgi* cgi = _cgi[ls_fd];
+        if (cgi->getInFd()) cgi->onWritable();
+        else if (cgi->getOutFd()) cgi->onReadable();
+        //if (cgi->getState() == DONE || cgi->getState() == FAILED) 
     }
     void Server::run() {
         while (true) {
@@ -135,9 +138,9 @@ namespace exec {
             for (size_t i = 0; i < _toClose.size(); ++i) {
                 delCl(_toClose[i]);
             }
-            for (size_t i = 0; i < _cgiToClose.size(); ++i) {
-                _cgi[_cgiToClose[i]]->cleanup();
-            }
+            // for (size_t i = 0; i < _cgiToClose.size(); ++i) {
+            //     _cgi[_cgiToClose[i]]->cleanup();
+            // }
             _toClose.clear();
 
         }
