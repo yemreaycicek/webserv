@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 17:45:47
+ * @ Modified time: 2026-08-14 / 18:22:01
  */
 
 #include "exec/Server.hpp"
@@ -139,7 +139,40 @@ namespace exec {
         }
     }
 
+    std::string Server::cgiToHttp(const std::string& raw) const {
+        std::string headers;
+        std::string body;
+        std::string::size_type pos = raw.find("\r\n\r\n");
+        size_t sepLen = 4;
+        if (pos == std::string::npos) {
+            pos = raw.find("\n\n");
+            sepLen = 2;
+        }
+        if (pos != std::string::npos) {
+            headers = raw.substr(0, pos);
+            body = raw.substr(pos + sepLen);
+        } else {
+            body = raw;
+        }
+        std::stringstream res;
+        res << "HTTP/1.1 200 OK\r\n";
+        if (!headers.empty()) res << headers << "\r\n";
+        res << "Content-Length: " << body.size() << "\r\n";
+        res << "\r\n";
+        res << body;
+        return res.str();
+    }
+
+
     void Server::delCgi(Cgi* cgi) {
+        std::string res;
+        if (cgi->getState() == DONE) res = cgiToHttp(cgi->rawOutput());
+        else res = "HTTP/1.1 502 Bad Gateway\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+        std::map<int, Connection*>::iterator it = _connections.find(cgi->getClientFd());
+        if (it != _connections.end()) {
+            it->second->setResponse(res);
+            _poller.setFdEvents(cgi->getClientFd(), POLLOUT);
+        }
         cgi->cleanup();
         delete cgi;
     }
