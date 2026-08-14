@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 16:07:12
+ * @ Modified time: 2026-08-14 / 16:32:53
  */
 
 #include "exec/Server.hpp"
@@ -121,12 +121,29 @@ namespace exec {
             }
         }
     }
+
     void Server::handleCgi(int fd) {
         Cgi* cgi = _cgi[fd];
         if (fd == cgi->getInFd()) cgi->onWritable();
         else if (fd == cgi->getOutFd()) cgi->onReadable();
-        //if (cgi->getState() == DONE || cgi->getState() == FAILED) 
+        if (cgi->getState() == DONE || cgi->getState() == FAILED) _cgiToClose.push_back(cgi);
     }
+
+    void Server::delCgi(Cgi* cgi) {
+        std::map<int, Cgi*>::iterator it = _cgi.begin();
+        while (it != _cgi.end()) {
+            if (it->second == cgi) {
+                _poller.deleteFd(it->first);
+                std::map<int, Cgi*>::iterator toErase = it++;
+                _cgi.erase(toErase);
+            } else {
+                ++it;
+            }
+        }
+        cgi->cleanup();
+        delete cgi;
+    }
+
     void Server::run() {
         while (true) {
             std::vector<pollfd> pl = _poller.pollReady(120);
@@ -138,9 +155,10 @@ namespace exec {
             for (size_t i = 0; i < _toClose.size(); ++i) {
                 delCl(_toClose[i]);
             }
-            // for (size_t i = 0; i < _cgiToClose.size(); ++i) {
-            //     _cgi[_cgiToClose[i]]->cleanup();
-            // }
+            for (size_t i = 0; i < _cgiToClose.size(); ++i) {
+                delCgi(_cgiToClose[i]);
+            }
+            _cgiToClose.clear();
             _toClose.clear();
 
         }

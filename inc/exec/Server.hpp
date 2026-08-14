@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:41
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 16:07:26
+ * @ Modified time: 2026-08-14 / 16:33:30
  */
 
 #ifndef WEBSERV_EXEC_SERVER_HPP
@@ -33,6 +33,7 @@ namespace exec {
             
             void                                addCl(int cl_fd, short events);
             void                                delCl(int fd);
+            void                                delCgi(Cgi* cgi);
             void                                handleCl(int fd, short revents);
             void                                acceptCl(int ls_fd);
             void                                buildCgi(int fd, CgiInfo& info);
@@ -47,7 +48,7 @@ namespace exec {
             std::map<int, std::string>          _clAddr;
             std::map<int, std::string>          _lsAddr;
             std::map<int, Cgi*>                 _cgi;
-            std::vector<int>                    _cgiToClose;
+            std::vector<Cgi*>                   _cgiToClose;
     };
 }
 
