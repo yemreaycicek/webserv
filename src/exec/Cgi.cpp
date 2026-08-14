@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 20:23:51
+ * @ Modified time: 2026-08-14 / 20:41:23
  */
 
 
@@ -116,6 +116,10 @@ namespace exec {
 
     pid_t Cgi::getPid() const {
         return _pid;
+    }
+
+    void Cgi::setTimedOut() {
+        _state = FAILED;
     }
 
     void Cgi::run(const RequestData& req, const std::string& interpreter, const std::string& scriptPath) {

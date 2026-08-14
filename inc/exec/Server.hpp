@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:41
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 18:04:00
+ * @ Modified time: 2026-08-14 / 20:38:54
  */
 
 #ifndef WEBSERV_EXEC_SERVER_HPP
@@ -21,6 +21,7 @@
 #include <string>
 
 namespace exec {
+    static const int CGI_TIMEOUT_SEC = 5;
     class Server {
         public:
             Server(const config::Router& config);

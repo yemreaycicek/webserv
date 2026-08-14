@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 20:22:57
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 20:23:43
+ * @ Modified time: 2026-08-14 / 20:40:55
  */
 
 
@@ -52,6 +52,7 @@ namespace exec {
             const std::string& rawOutput() const;
             bool isTimedOut(int limitSec) const;
             pid_t getPid() const;
+            void setTimedOut();
 
         private:
             Cgi(const Cgi&);

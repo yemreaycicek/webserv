@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 18:22:01
+ * @ Modified time: 2026-08-14 / 20:44:38
  */
 
 #include "exec/Server.hpp"
@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <poll.h>
 #include <iostream>
+#include <signal.h>
 
 namespace exec {
     Server::Server(const config::Router& config) : _config(config), _poller() {
@@ -193,7 +194,17 @@ namespace exec {
             }
             _cgiToClose.clear();
             _toClose.clear();
+            
+            for (std::map<int, Cgi*>::const_iterator it = _cgi.begin(); it != _cgi.end(); ++it) {
+                if (it->second->getState() == WRITING || it->second->getState() == READING) {
+                    if (it->second->isTimedOut(CGI_TIMEOUT_SEC)) {
+                        kill(it->second->getPid(), SIGKILL);
+                        it->second->setTimedOut();
+                        _cgiToClose.push_back(it->second);
 
+                    }
+                }
+            }
         }
     }
 }
