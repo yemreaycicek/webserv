@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:41
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-06 / 14:43:21
+ * @ Modified time: 2026-08-14 / 14:18:36
  */
 
 #ifndef WEBSERV_EXEC_SERVER_HPP
@@ -14,6 +14,7 @@
 #include "exec/Connection.hpp"
 #include "exec/Server.hpp"
 #include "exec/Executor.hpp"
+#include "exec/Cgi.hpp"
 
 #include <map>
 #include <vector>
@@ -34,15 +35,18 @@ namespace exec {
             void                                delCl(int fd);
             void                                handleCl(int fd, short revents);
             void                                acceptCl(int ls_fd);
+            void                                buildCgi(int fd, CgiInfo& info);
 
             const config::Router&               _config;
             exec::Poller                        _poller;
             exec::Executor                      _executor;
             std::vector<net::ListenSocket*>     _listenSockets;
-            std::vector<int>                    _toClose;          
+            std::vector<int>                    _toClose;
             std::map<int, exec::Connection*>    _connections;
             std::map<int, std::string>          _clAddr;
             std::map<int, std::string>          _lsAddr;
+            std::map<int, Cgi*>                 _cgi;
+            std::vector<int>                    _cgiToClose;
     };
 }
 

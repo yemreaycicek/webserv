@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-13 / 20:54:15
+ * @ Modified time: 2026-08-13 / 22:37:13
  */
 
 #include "exec/Executor.hpp"
@@ -190,11 +190,27 @@ namespace exec {
         rd.headers = r.getHeaders();
         return (rd);
     }
+
+    bool Executor::isCgiRequest(const ResolvedPath& rp) const {
+        if (rp.location == NULL) return (false);
+        if (rp.location->cgiExtension.empty()) return (false);
+        std::string cgiExtension = rp.location->cgiExtension;
+        bool endsWith = rp.fsPath.size() >= cgiExtension.size() && rp.fsPath.compare(rp.fsPath.size() - cgiExtension.size(), cgiExtension.size(), cgiExtension) == 0;
+        return (endsWith);
+    }
     
-    std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r) {
+    std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi) {
+        outCgi.isCgi = false;
         exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
         if (rp.location != NULL && rp.location->redirect.isSet()) {
             return _responseBuilder.buildRedirect(static_cast<http::status::Code>(rp.location->redirect.code), rp.location->redirect.target);
+        }
+        if (isCgiRequest(rp)) {
+            outCgi.isCgi = true;
+            outCgi.interpreter = rp.location->cgiPass;
+            outCgi.scriptPath  = rp.fsPath;
+            outCgi.reqData = buildRequestData(r);
+            return ("");
         }
 
         http::Method m = r.getMethod();

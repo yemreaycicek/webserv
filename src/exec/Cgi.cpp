@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-12 / 17:16:39
+ * @ Modified time: 2026-08-14 / 14:59:21
  */
 
 
@@ -12,7 +12,7 @@
 #include <sys/wait.h>
 
 namespace exec {
-    Cgi::Cgi() : _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0) {}
+    Cgi::Cgi(int clientFd) : _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _clientFd(clientFd) {}
     Cgi::~Cgi() {}
 
     std::vector<std::string> Cgi::buildEnv(const RequestData& req) const {
@@ -39,6 +39,10 @@ namespace exec {
             env.push_back("HTTP_" + envName + "=" + it->second);
         }
         return env;
+    }
+
+    int Cgi::getClientFd() const {
+        return _clientFd;
     }
 
     void Cgi::onWritable() {
@@ -75,7 +79,11 @@ namespace exec {
         }
     }
 
-    int Cgi::getInFd() const {
+    int Cgi::getOutFd() const {
+        return (_outRdFd);
+    }
+
+    State Cgi::getState() const {
         return (_state);
     }
 
@@ -102,7 +110,7 @@ namespace exec {
         }
     }
 
-    void Cgi::run(const RequestData& req) {
+    void Cgi::run(const RequestData& req, const std::string& interpreter, const std::string& scriptPath) {
         int inPipe[2];
         int outPipe[2];
         if (pipe(inPipe) == -1) {
@@ -131,10 +139,10 @@ namespace exec {
             close(inPipe[1]);
             close(outPipe[0]);
             close(outPipe[1]);
-            char* av[] = {(char *)"/usr/bin/python3", (char *)"/home/monster/code/webserv/src/exec/selam.py", NULL};
+            char* av[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
             std::vector<std::string> envStr = buildEnv(req);
             std::vector<char*> envp;
-            for (std::vector<std::string>::iterator it = envStr.begin(); it != envStr.end(); ++it) {
+            for (std::vector<std::string>::const_iterator it = envStr.begin(); it != envStr.end(); ++it) {
                 envp.push_back(const_cast<char*>(it->c_str()));
             }
             envp.push_back(NULL);

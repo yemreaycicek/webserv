@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-06 / 14:58:26
+ * @ Modified time: 2026-08-14 / 14:57:19
  */
 
 #include "exec/Server.hpp"
@@ -66,7 +66,23 @@ namespace exec {
         _connections.erase(it);
         _clAddr.erase(fd);
     }
+    void Server::buildCgi(int fd, CgiInfo& info) {
+        Cgi* cgi = new Cgi(fd);
+        cgi->run(info.reqData, info.interpreter, info.scriptPath);
+        if (cgi->getState() == FAILED) {
+            delete cgi;
+            return;
+        }
+        int outFd = cgi->getOutFd();
+        _poller.addFd(outFd, POLLIN);
+        _cgi[outFd] = cgi;
+        if (cgi->getInFd() != -1) {
+            int inFd = cgi->getInFd();
+            _poller.addFd(inFd, POLLOUT);
+            _cgi[inFd] = cgi;
+        }
 
+    }
     void Server::handleCl(int fd, short revents) {
         exec::Connection *conCl = _connections[fd];
         if (revents & POLLIN) {
@@ -74,15 +90,21 @@ namespace exec {
             if (conCl->isRequestComplete()) {
                 std::string res;
                 try {
+                    CgiInfo cgiInfo;
                     const config::ServerBlock& sb = _config.getServerBlock(_clAddr[fd]);
-                    res = _executor.execute(sb, conCl->getRequest());
+                    res = _executor.execute(sb, conCl->getRequest(), cgiInfo);
+                    if (cgiInfo.isCgi) {
+                        buildCgi(fd, cgiInfo);
+                    }
+                    else {
+                        conCl->setResponse(res);
+                        _poller.setFdEvents(fd, POLLOUT);
+                    }
                 } catch(const std::exception& e) {
                     res = "HTTP/1.1 500 Internal Server Error\r\n "
                     "Content-Length: 0\r\n"
                     "Connection: close\r\n\r\n";
                 }
-                conCl->setResponse(res);
-                _poller.setFdEvents(fd, POLLOUT);                
             }
             else if (conCl->getRequest().hasError()) {
                 std::string res = "HTTP/1.1 400 Bad Request\r\n"
@@ -99,16 +121,22 @@ namespace exec {
             }
         }
     }
-
+    void handleCgi(int ls_fd) {
+        
+    }
     void Server::run() {
         while (true) {
             std::vector<pollfd> pl = _poller.pollReady(120);
             for (size_t i = 0; i < pl.size(); ++i) {
                 if (_lsAddr.count(pl[i].fd))    acceptCl(pl[i].fd);
+                else if (_cgi.count(pl[i].fd))  handleCgi(pl[i].fd);
                 else                            handleCl(pl[i].fd, pl[i].revents);
             }
             for (size_t i = 0; i < _toClose.size(); ++i) {
                 delCl(_toClose[i]);
+            }
+            for (size_t i = 0; i < _cgiToClose.size(); ++i) {
+                _cgi[_cgiToClose[i]]->cleanup();
             }
             _toClose.clear();
 

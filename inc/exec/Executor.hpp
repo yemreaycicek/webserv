@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-13 / 20:38:59
+ * @ Modified time: 2026-08-13 / 21:53:28
  */
 
 
@@ -28,7 +28,7 @@ namespace exec {
             Executor();
             ~Executor();
 
-            std::string     execute(const config::ServerBlock& sb, const http::Request& r);
+            std::string     execute(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi);
             
         private:
             Executor(const Executor& other);
@@ -43,6 +43,7 @@ namespace exec {
             std::string     handlePost(const config::ServerBlock& sb, const http::Request& r);
             std::string     handleDelete(const config::ServerBlock& sb, const http::Request& r);
             RequestData     buildRequestData(const http::Request& r) const;
+            bool            isCgiRequest(const ResolvedPath& rp) const;
 
             Resolver        _resolver;
             ResponseBuilder _responseBuilder;
