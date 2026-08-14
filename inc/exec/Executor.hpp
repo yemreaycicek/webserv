@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-13 / 21:53:28
+ * @ Modified time: 2026-08-14 / 17:25:28
  */
 
 
@@ -14,6 +14,7 @@
 #include "http/Request.hpp"
 #include "exec/Resolver.hpp"
 #include "exec/ResponseBuilder.hpp"
+#include "exec/Cgi.hpp"
 #include <string>
 
 namespace exec {
