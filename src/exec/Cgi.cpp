@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 20:41:23
+ * @ Modified time: 2026-08-14 / 21:20:24
  */
 
 
@@ -73,6 +73,11 @@ namespace exec {
             close(_outRdFd);
             _outRdFd = -1;
             _state = DONE;
+            int status;
+            waitpid(_pid, &status, 0);
+            _pid = -1;
+            if (WIFEXITED(status) && WEXITSTATUS(status) == 0) _state = DONE;
+            else _state = FAILED;
         }
         else {
             _state = FAILED;
