@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 14:59:21
+ * @ Modified time: 2026-08-14 / 17:20:51
  */
 
 
@@ -12,7 +12,7 @@
 #include <sys/wait.h>
 
 namespace exec {
-    Cgi::Cgi(int clientFd) : _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _clientFd(clientFd) {}
+    Cgi::Cgi(int clientFd) : _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1),  _clientFd(clientFd), _inputOffset(0) {}
     Cgi::~Cgi() {}
 
     std::vector<std::string> Cgi::buildEnv(const RequestData& req) const {
