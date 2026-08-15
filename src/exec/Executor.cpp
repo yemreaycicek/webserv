@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 17:52:49
+ * @ Modified time: 2026-08-15 / 15:38:46
  */
 
 #include "exec/Executor.hpp"
@@ -209,6 +209,7 @@ namespace exec {
             return _responseBuilder.buildRedirect(static_cast<http::status::Code>(rp.location->redirect.code), rp.location->redirect.target);
         }
         if (isCgiRequest(rp)) {
+            if (getPathType(rp.fsPath) != PATH_FILE) return (buildError(http::status::NOT_FOUND, sb));
             outCgi.isCgi = true;
             outCgi.interpreter = rp.location->cgiPass;
             outCgi.scriptPath  = rp.fsPath;
