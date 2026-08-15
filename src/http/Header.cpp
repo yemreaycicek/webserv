@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:50:32
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-13 / 19:16:02
+ * @ Modified time: 2026-08-15 / 12:31:10
  */
 
 #include "http/Header.hpp"
@@ -98,7 +98,7 @@ namespace http {
             return (false);
         }
 
-        std::string lastCoding = 0;
+        std::string lastCoding; //! check
         std::size_t start = 0;
         while (start <= value.length()) {
             std::size_t comma = value.find(",", start);
