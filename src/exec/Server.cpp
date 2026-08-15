@@ -2,13 +2,14 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 20:49:12
+ * @ Modified time: 2026-08-15 / 12:24:55
  */
 
 #include "exec/Server.hpp"
 #include "net/Address.hpp"
 #include "utils/str.hpp"
 #include "exec/Executor.hpp"
+#include "http/Status.hpp"
 #include <cstdlib>
 #include <poll.h>
 #include <iostream>
@@ -108,7 +109,8 @@ namespace exec {
                 }
             }
             else if (conCl->getRequest().hasError()) {
-                std::string res = "HTTP/1.1 400 Bad Request\r\n"
+                http::status::Code code = conCl->getRequest().getErrorCode();
+                std::string res = "HTTP/1.1 " + str::to_string(code) + " " + http::status::getReasonPhrase(code) + "\r\n" +
                 "Content-Length: 0\r\n"
                 "Connection: close\r\n\r\n";
                 conCl->setResponse(res);
