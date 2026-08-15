@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-15 / 12:24:55
+ * @ Modified time: 2026-08-15 / 15:20:29
  */
 
 #include "exec/Server.hpp"
@@ -157,9 +157,29 @@ namespace exec {
         } else {
             body = raw;
         }
+        std::string statusLine = "200 OK";
+        std::string outHeaders;
+        std::stringstream hs(headers);
+        std::string line;
+        while (std::getline(hs, line)) {
+            if (!line.empty() && line[line.size() - 1] == '\r')
+            line.erase(line.size() - 1);
+            if (line.empty())
+            continue;
+            std::string lower = str::tolower(line);
+            if (lower.compare(0, 7, "status:") == 0) {
+                std::string val = str::trim(line.substr(7));
+                if (!val.empty())
+                statusLine = val;
+                continue;
+            }
+            if (lower.compare(0, 15, "content-length:") == 0)
+            continue;
+            outHeaders += line + "\r\n";
+        }
         std::stringstream res;
-        res << "HTTP/1.1 200 OK\r\n";
-        if (!headers.empty()) res << headers << "\r\n";
+        res << "HTTP/1.1 " << statusLine << "\r\n";
+        res << outHeaders;
         res << "Content-Length: " << body.size() << "\r\n";
         res << "\r\n";
         res << body;
