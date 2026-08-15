@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-13 / 19:17:56
+ * @ Modified time: 2026-08-14 / 22:54:01
  */
 
 #include "http/Request.hpp"
@@ -77,6 +77,10 @@ namespace http {
 
     bool Request::hasError() const {
         return (_state == STATE_ERROR);
+    }
+
+    status::Code Request::getErrorCode() const {
+        return (_errorCode);
     }
 
     Method Request::getMethod() const {

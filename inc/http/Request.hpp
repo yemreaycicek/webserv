@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 17:49:22
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-15 / 12:19:07
  */
 
 #ifndef WEBSERV_HTPP_REQUEST_HPP
@@ -36,6 +36,7 @@ namespace http {
 
             bool isComplete() const;
             bool hasError() const;
+            status::Code getErrorCode() const; //! check
             Method getMethod() const;
             const std::string& getUri() const;
             const std::string& getBody() const;
