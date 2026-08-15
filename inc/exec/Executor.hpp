@@ -45,6 +45,7 @@ namespace exec {
             std::string     handleDelete(const config::ServerBlock& sb, const http::Request& r);
             RequestData     buildRequestData(const http::Request& r) const;
             bool            isCgiRequest(const ResolvedPath& rp) const;
+            bool            isMethodAllowed(const config::LocationBlock* loc, const std::string& method) const;
 
             Resolver        _resolver;
             ResponseBuilder _responseBuilder;

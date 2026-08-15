@@ -198,6 +198,15 @@ namespace exec {
         bool endsWith = rp.fsPath.size() >= cgiExtension.size() && rp.fsPath.compare(rp.fsPath.size() - cgiExtension.size(), cgiExtension.size(), cgiExtension) == 0;
         return (endsWith);
     }
+
+    bool Executor::isMethodAllowed(const config::LocationBlock* loc, const std::string& method) const {
+        if (method.empty()) return (false);
+        const std::vector<std::string>& methods = loc->allowMethods;
+        for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
+            if (*it == method) return (true);
+        }
+        return (false);
+    }
     
     std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi) {
         outCgi.isCgi = false;
@@ -209,11 +218,13 @@ namespace exec {
             return _responseBuilder.buildRedirect(static_cast<http::status::Code>(rp.location->redirect.code), rp.location->redirect.target);
         }
         if (isCgiRequest(rp)) {
+            RequestData reqData = buildRequestData(r);
+            if (!isMethodAllowed(rp.location, reqData.method)) return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
             if (getPathType(rp.fsPath) != PATH_FILE) return (buildError(http::status::NOT_FOUND, sb));
             outCgi.isCgi = true;
             outCgi.interpreter = rp.location->cgiPass;
             outCgi.scriptPath  = rp.fsPath;
-            outCgi.reqData = buildRequestData(r);
+            outCgi.reqData = reqData;
             return ("");
         }
 
