@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 20:22:57
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 20:40:55
+ * @ Modified time: 2026-08-15 / 13:54:37
  */
 
 
@@ -58,7 +58,7 @@ namespace exec {
             Cgi(const Cgi&);
             Cgi& operator=(const Cgi&);
 
-            std::vector<std::string> buildEnv(const RequestData& req) const;
+            std::vector<std::string> buildEnv(const RequestData& req, const std::string& scriptPath) const;
             int _clientFd;
             State   _state;
             int     _inWrFd;

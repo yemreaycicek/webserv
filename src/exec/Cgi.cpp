@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-14 / 21:20:24
+ * @ Modified time: 2026-08-15 / 16:10:49
  */
 
 
@@ -15,14 +15,16 @@ namespace exec {
     Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _startedAt(0) {}
     Cgi::~Cgi() {}
 
-    std::vector<std::string> Cgi::buildEnv(const RequestData& req) const {
+    std::vector<std::string> Cgi::buildEnv(const RequestData& req, const std::string& scriptPath) const {
         std::vector<std::string> env;
         env.push_back("GATEWAY_INTERFACE=CGI/1.1");
         env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 
         env.push_back("REQUEST_METHOD=" + req.method);
         env.push_back("QUERY_STRING=" + req.query);
-        env.push_back("SCRIPT_NAME=" + req.path);
+        env.push_back("SCRIPT_NAME=");
+        env.push_back("PATH_INFO=" + req.path);
+        env.push_back("SCRIPT_FILENAME=" + scriptPath);
         std::map<std::string, std::string>::const_iterator it = req.headers.find("Content-Type");
         if (it != req.headers.end()) env.push_back("CONTENT_TYPE=" + it->second);
         std::stringstream ss;
@@ -72,11 +74,9 @@ namespace exec {
         else if (n == 0) {
             close(_outRdFd);
             _outRdFd = -1;
-            _state = DONE;
-            int status;
-            waitpid(_pid, &status, 0);
+            waitpid(_pid, NULL, 0);
             _pid = -1;
-            if (WIFEXITED(status) && WEXITSTATUS(status) == 0) _state = DONE;
+            if (!_output.empty()) _state = DONE;
             else _state = FAILED;
         }
         else {
@@ -157,7 +157,7 @@ namespace exec {
             close(outPipe[0]);
             close(outPipe[1]);
             char* av[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
-            std::vector<std::string> envStr = buildEnv(req);
+            std::vector<std::string> envStr = buildEnv(req, scriptPath);
             std::vector<char*> envp;
             for (std::vector<std::string>::const_iterator it = envStr.begin(); it != envStr.end(); ++it) {
                 envp.push_back(const_cast<char*>(it->c_str()));
