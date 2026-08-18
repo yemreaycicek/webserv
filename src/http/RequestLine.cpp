@@ -81,5 +81,6 @@ namespace http {
         if      (methodString == "GET") _method = GET;
         else if (methodString == "POST") _method = POST;
         else if (methodString == "DELETE") _method = DELETE;
+        else if (methodString == "HEAD") _method = HEAD;
     }
 }

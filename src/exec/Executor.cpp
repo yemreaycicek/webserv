@@ -110,7 +110,7 @@ namespace exec {
                         std::string listing = generateAutoindex(rp.fsPath, r.getUri());
                         if (!listing.empty()) return (_responseBuilder.build(http::status::OK, listing, "text/html"));
                     }
-                    return (buildError(http::status::FORBIDDEN, sb));
+                    return (buildError(http::status::NOT_FOUND, sb));
                 }
                 std::string content = readFile(rp.fsPath);
                 if (content.empty()) return (buildError(http::status::NOT_FOUND, sb));
@@ -127,7 +127,7 @@ namespace exec {
         for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
             if (*it == "POST") {
                 if (r.getBody().size() > sb.clientMaxBodySize) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
-                if (!rp.location->uploadEnable) return (buildError(http::status::FORBIDDEN, sb));
+                if (!rp.location->uploadEnable) return (buildError(http::status::NOT_FOUND, sb));
 
                 std::string uri = r.getUri();
                 std::string fileName = uri.substr(uri.rfind('/') + 1);
@@ -231,6 +231,14 @@ namespace exec {
         http::Method m = r.getMethod();
         if (m == http::GET) {
             return (handleGet(sb, r));
+        }
+        if (m == http::HEAD) {
+            if (rp.location == NULL || !isMethodAllowed(rp.location, "HEAD"))
+                return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+            std::string res = handleGet(sb, r);
+            std::string::size_type pos = res.find("\r\n\r\n");
+            if (pos != std::string::npos) res.erase(pos + 4);
+            return (res);
         }
         if (m == http::POST) {
             return (handlePost(sb, r));
