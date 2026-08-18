@@ -24,13 +24,22 @@ namespace exec {
         PATH_DIR
     };
 
+    // Outcome of trying to route a request to a CGI location as soon as its
+    // headers are known (before the, possibly huge, body has fully arrived).
+    enum CgiDispatch {
+        CGI_NONE,   // not a CGI location: caller should fall back to normal buffered handling
+        CGI_ERROR,  // a CGI location, but the request is invalid; outErrorResponse is ready to send
+        CGI_START   // valid CGI request; outCgi is ready (empty/partial body) to spawn and stream into
+    };
+
     class Executor {
         public:
             Executor();
             ~Executor();
 
-            std::string     execute(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi);
-            
+            std::string     execute(const config::ServerBlock& sb, const http::Request& r);
+            CgiDispatch     prepareCgi(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi, std::string& outErrorResponse);
+
         private:
             Executor(const Executor& other);
             Executor&       operator=(const Executor& other);
@@ -43,7 +52,8 @@ namespace exec {
             std::string     buildError(http::status::Code code, const config::ServerBlock& sb) const;
             std::string     handlePost(const config::ServerBlock& sb, const http::Request& r);
             std::string     handleDelete(const config::ServerBlock& sb, const http::Request& r);
-            RequestData     buildRequestData(const http::Request& r) const;
+            void            buildRequestData(const http::Request& r, RequestData& out) const;
+            std::size_t     getMaxBodySize(const config::ServerBlock& sb, const config::LocationBlock* loc) const;
             bool            isCgiRequest(const ResolvedPath& rp) const;
             bool            isMethodAllowed(const config::LocationBlock* loc, const std::string& method) const;
 

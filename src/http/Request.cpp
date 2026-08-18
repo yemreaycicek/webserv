@@ -95,6 +95,22 @@ namespace http {
         return (_body.getContent());
     }
 
+    void Request::clearBody() {
+        _body.clear();
+    }
+
+    std::string Request::takeBody() {
+        return (_body.takeContent());
+    }
+
+    bool Request::isHeadersReady() const {
+        return (_state == STATE_BODY || _state == STATE_COMPLETE);
+    }
+
+    std::size_t Request::getContentLength() const {
+        return (_header.getContentLength());
+    }
+
     std::string Request::getHeader(const std::string& key) const {
         return (_header.get(key));
     }

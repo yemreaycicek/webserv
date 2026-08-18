@@ -15,6 +15,7 @@
 #include "config/Lexer.hpp"
 
 namespace config {
+        const std::size_t UNSET_BODY_SIZE = static_cast<std::size_t>(-1);
     struct Redirect {
         int code;
         std::string target;
@@ -34,9 +35,10 @@ namespace config {
         std::string uploadStore;
         std::string cgiExtension;   //! ".py"
         std::string cgiPass;        //! "/usr/bin/python3"
+        std::size_t clientMaxBodySize;
 
 
-        LocationBlock() : autoindex(false), uploadEnable(false) {}
+        LocationBlock() : autoindex(false), uploadEnable(false), clientMaxBodySize(UNSET_BODY_SIZE) {}
     };
 
     struct ServerBlock {
@@ -90,6 +92,7 @@ namespace config {
             void parseReturn(LocationBlock& location);
             void parseUploadEnable(LocationBlock& location);
             void parseUploadStore(LocationBlock& location);
+            void parseClientMaxBodySize(LocationBlock& location);
             
             void validateServerBlock(const ServerBlock& server) const;
             void validateLocationBlock(const LocationBlock& location) const;

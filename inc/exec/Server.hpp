@@ -21,7 +21,17 @@
 #include <string>
 
 namespace exec {
-    static const int CGI_TIMEOUT_SEC = 5;
+    static const int CGI_TIMEOUT_SEC = 60;
+    // Backpressure bounds on how much unwritten CGI input we let pile up per
+    // connection: past the high mark we stop reading more body from the client
+    // socket until the child has drained it back down past the low mark. This
+    // caps memory usage per in-flight upload instead of buffering it whole.
+    static const std::size_t CGI_INPUT_HIGH_MARK = 1 * 1024 * 1024;
+    static const std::size_t CGI_INPUT_LOW_MARK  = 256 * 1024;
+    // NOTE: there is deliberately no equivalent backpressure on the CGI-output
+    // -> client direction. See the comment in Server::relayCgiOutput() for why:
+    // pausing there can deadlock against a client that writes its whole request
+    // before reading any response (perfectly standard HTTP/1.1 behavior).
     class Server {
         public:
             Server(const config::Router& config);
@@ -37,8 +47,13 @@ namespace exec {
             void                                delCgi(Cgi* cgi);
             void                                handleCl(int fd, short revents);
             void                                acceptCl(int ls_fd);
-            void                                buildCgi(int fd, CgiInfo& info);
+            void                                spawnCgiStream(int fd, CgiInfo& info, bool bodyComplete);
+            bool                                dispatchCgi(int fd, exec::Connection* conCl);
+            void                                feedCgiStream(int fd, exec::Connection* conCl, Cgi* cgi);
             void                                handleCgi(int fd);
+            void                                relayCgiOutput(Cgi* cgi);
+            std::string                         buildStreamedCgiHead(const std::string& headerBlock) const;
+            std::string                         encodeChunk(const std::string& data) const;
             std::string                         cgiToHttp(const std::string& raw) const;
 
             const config::Router&               _config;
@@ -50,6 +65,7 @@ namespace exec {
             std::map<int, std::string>          _clAddr;
             std::map<int, std::string>          _lsAddr;
             std::map<int, Cgi*>                 _cgi;
+            std::map<int, Cgi*>                 _cgiByClient; // client fd -> Cgi still receiving/streaming body
             std::vector<Cgi*>                   _cgiToClose;
     };
 }

@@ -105,6 +105,8 @@ namespace exec {
                             std::string content = readFile(indexPath);
                             return _responseBuilder.build(http::status::OK, content, getContentType(indexPath));
                         }
+                        if (!rp.location->autoindex) return (buildError(http::status::NOT_FOUND, sb)); /************************* */
+
                     }
                     if (rp.location->autoindex) {
                         std::string listing = generateAutoindex(rp.fsPath, r.getUri());
@@ -126,7 +128,7 @@ namespace exec {
         const std::vector<std::string>& methods = rp.location->allowMethods;
         for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
             if (*it == "POST") {
-                if (r.getBody().size() > sb.clientMaxBodySize) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
+                if (r.getBody().size() > getMaxBodySize(sb, rp.location)) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
                 if (!rp.location->uploadEnable) return (buildError(http::status::NOT_FOUND, sb));
 
                 std::string uri = r.getUri();
@@ -158,37 +160,38 @@ namespace exec {
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
 
-    RequestData Executor::buildRequestData(const http::Request& r) const {
-        RequestData rd;
+    void Executor::buildRequestData(const http::Request& r, RequestData& out) const {
         http::Method m = r.getMethod();
         switch(m) {
             case http::GET:
-                rd.method = "GET";
+                out.method = "GET";
                 break;
             case http::POST:
-                rd.method = "POST";
+                out.method = "POST";
                 break;
             case http::DELETE:
-                rd.method = "DELETE";
+                out.method = "DELETE";
                 break;
             default:
-                rd.method = "";
+                out.method = "";
                 break;
         }
 
         std::string uri = r.getUri();
         std::string::size_type pos = uri.find('?');
         if (pos == std::string::npos) {
-            rd.path = uri;
-            rd.query = "";
+            out.path = uri;
+            out.query = "";
         }
         else {
-            rd.path = uri.substr(0, pos);
-            rd.query = uri.substr(pos + 1);
+            out.path = uri.substr(0, pos);
+            out.query = uri.substr(pos + 1);
         }
-        rd.body = r.getBody();
-        rd.headers = r.getHeaders();
-        return (rd);
+        // Build the (possibly large) body directly into the caller's RequestData
+        // to avoid an extra full-body copy from a temporary.
+        out.body = r.getBody();
+        out.contentLength = r.getContentLength();
+        out.headers = r.getHeaders();
     }
 
     bool Executor::isCgiRequest(const ResolvedPath& rp) const {
@@ -197,6 +200,12 @@ namespace exec {
         std::string cgiExtension = rp.location->cgiExtension;
         bool endsWith = rp.fsPath.size() >= cgiExtension.size() && rp.fsPath.compare(rp.fsPath.size() - cgiExtension.size(), cgiExtension.size(), cgiExtension) == 0;
         return (endsWith);
+    }
+    std::size_t Executor::getMaxBodySize(const config::ServerBlock& sb, const config::LocationBlock* loc) const {
+        if (loc != NULL && loc->clientMaxBodySize != config::UNSET_BODY_SIZE) {
+            return (loc->clientMaxBodySize);
+        }
+        return (sb.clientMaxBodySize);
     }
 
     bool Executor::isMethodAllowed(const config::LocationBlock* loc, const std::string& method) const {
@@ -208,8 +217,36 @@ namespace exec {
         return (false);
     }
     
-    std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi) {
+    CgiDispatch Executor::prepareCgi(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi, std::string& outErrorResponse) {
         outCgi.isCgi = false;
+        std::string uri = r.getUri();
+        std::string::size_type qpos = uri.find('?');
+        std::string pathOnly = (qpos == std::string::npos) ? uri : uri.substr(0, qpos);
+        exec::ResolvedPath rp = _resolver.resolve(sb, pathOnly);
+        if (rp.location != NULL && rp.location->redirect.isSet()) return (CGI_NONE);
+        if (!isCgiRequest(rp)) return (CGI_NONE);
+
+        // Build directly into outCgi.reqData: avoids an extra full-body copy
+        // that a temporary RequestData + struct assignment would otherwise cost.
+        // Whatever of the body already arrived alongside the headers is picked up
+        // here too; the rest streams in later via Connection::takeAvailableBody().
+        buildRequestData(r, outCgi.reqData);
+        outCgi.reqData.maxBodySize = getMaxBodySize(sb, rp.location);
+        if (!isMethodAllowed(rp.location, outCgi.reqData.method)) {
+            outErrorResponse = buildError(http::status::METHOD_NOT_ALLOWED, sb);
+            return (CGI_ERROR);
+        }
+        if (r.getMethod() == http::POST && r.getContentLength() > getMaxBodySize(sb, rp.location)) {
+            outErrorResponse = buildError(http::status::CONTENT_TOO_LARGE, sb);
+            return (CGI_ERROR);
+        }
+        outCgi.isCgi = true;
+        outCgi.interpreter = rp.location->cgiPass;
+        outCgi.scriptPath  = rp.fsPath;
+        return (CGI_START);
+    }
+
+    std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r) {
         std::string uri = r.getUri();
         std::string::size_type qpos = uri.find('?');
         std::string pathOnly = (qpos == std::string::npos) ? uri : uri.substr(0, qpos);
@@ -217,16 +254,9 @@ namespace exec {
         if (rp.location != NULL && rp.location->redirect.isSet()) {
             return _responseBuilder.buildRedirect(static_cast<http::status::Code>(rp.location->redirect.code), rp.location->redirect.target);
         }
-        if (isCgiRequest(rp)) {
-            RequestData reqData = buildRequestData(r);
-            if (!isMethodAllowed(rp.location, reqData.method)) return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
-            if (getPathType(rp.fsPath) != PATH_FILE) return (buildError(http::status::NOT_FOUND, sb));
-            outCgi.isCgi = true;
-            outCgi.interpreter = rp.location->cgiPass;
-            outCgi.scriptPath  = rp.fsPath;
-            outCgi.reqData = reqData;
-            return ("");
-        }
+        // CGI locations are dispatched earlier via prepareCgi()/streaming (see
+        // Server), as soon as headers are ready, so by the time execute() runs the
+        // request is known not to be one.
 
         http::Method m = r.getMethod();
         if (m == http::GET) {

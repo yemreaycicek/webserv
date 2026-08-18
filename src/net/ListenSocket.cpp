@@ -8,6 +8,8 @@
 #include "net/ListenSocket.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <string>
 #include <stdexcept>
 #include <fcntl.h>
@@ -41,6 +43,13 @@ namespace net {
             close(client_fd);
             return (-1);
         }
+        // Without this, small writes (our chunked-response pieces, or a client
+        // sending in small increments) interact with the peer's delayed-ACK
+        // timer via Nagle's algorithm, each one stalling tens of ms — turning
+        // a sub-second loopback transfer into one slow enough to trip the CGI
+        // timeout on a large body. Best-effort: not fatal if unsupported.
+        int y = 1;
+        setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &y, sizeof(y));
         return (client_fd);
     }
 

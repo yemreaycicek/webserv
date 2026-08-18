@@ -54,6 +54,8 @@ namespace config {
         _locationHandler["upload_store"] = &Parser::parseUploadStore;
         _locationHandler["cgi_extension"] = &Parser::parseCgiExtension; //!check
         _locationHandler["cgi_pass"] = &Parser::parseCgiPass;           //!check
+        _locationHandler["client_max_body_size"] = &Parser::parseClientMaxBodySize;
+
     }
 
     void Parser::parseCgiExtension(LocationBlock& location) {
@@ -206,6 +208,9 @@ namespace config {
 
     void Parser::parseUploadStore(LocationBlock& location) {
         location.uploadStore = consumeWord("upload_store");
+    }
+    void Parser::parseClientMaxBodySize(LocationBlock& location) {
+        location.clientMaxBodySize = parseSize(consumeWord("client_max_body_size"), "client_max_body_size");
     }
 
     void Parser::validateServerBlock(const ServerBlock& server) const {

@@ -21,6 +21,8 @@ namespace http {
             bool parse(std::string& buffer, std::size_t contentLength, bool isChunked);
 
             const std::string& getContent() const;
+            void clear();
+            std::string takeContent();
     
         private:
             std::string _content;            

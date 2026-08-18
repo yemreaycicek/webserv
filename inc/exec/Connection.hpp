@@ -31,11 +31,21 @@ namespace exec {
             void                    onWritable();
             bool                    isRequestComplete() const;
             void                    setResponse(const std::string& resp);
-            const std::string&      getRequestData() const;
+            void                    clearRequestBody();
+            std::string             takeAvailableBody();
+            // Streaming response support (used for CGI output, so we never need
+            // the whole body in memory at once): start with the status+headers,
+            // append body chunks as they become available, then mark it finished
+            // once no more data is coming.
+            void                    beginStreamResponse(const std::string& head);
+            void                    appendStreamChunk(const std::string& chunk);
+            void                    finishStreamResponse();
+            std::size_t             pendingSendBytes() const;
         private:
             net::Socket             _socket;
-            std::string             _rdBuf;
             std::string             _wrBuf;
+            std::size_t             _wrOffset; //****** */
+            bool                    _wrComplete; // false while more data may still be appended
             http::Request           _request;
             ConState                _state;
             Connection(const Connection& other);

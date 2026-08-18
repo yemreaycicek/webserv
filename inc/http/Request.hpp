@@ -40,7 +40,14 @@ namespace http {
             Method getMethod() const;
             const std::string& getUri() const;
             const std::string& getBody() const;
+            void clearBody();
+            std::string takeBody();
             std::string getHeader(const std::string& key) const;
+            // True once the request line + headers are fully parsed, i.e. the method,
+            // URI and Content-Length/Transfer-Encoding are known even if the body
+            // (possibly huge) hasn't fully arrived yet.
+            bool isHeadersReady() const;
+            std::size_t getContentLength() const;
 
             const std::map<std::string, std::string>& getHeaders() const; //! check
     

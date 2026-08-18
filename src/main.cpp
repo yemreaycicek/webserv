@@ -6,7 +6,7 @@
  */
 
 #include <string>
-
+#include <csignal>
 #include "config/Lexer.hpp"
 #include "config/Parser.hpp"
 #include "config/Router.hpp"
@@ -16,6 +16,7 @@
 
 int main(int argc, char **argv)
 {
+    signal(SIGPIPE, SIG_IGN);
     try {
         arg::Parser     args(argc, argv);
 

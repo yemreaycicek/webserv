@@ -59,9 +59,16 @@ namespace http {
         } else {
             if (contentLength == 0) {
                 return (true);
-            } else if (buffer.length() >= contentLength) {
-                _content += buffer.substr(0, contentLength);
-                buffer.erase(0, contentLength);
+            }
+            // Consume whatever is available right away instead of waiting for the
+            // whole body to accumulate in `buffer` first: that would otherwise hold
+            // the entire body twice in memory (once in `buffer`, once in `_content`)
+            // for the whole duration of a large upload.
+            std::size_t need = contentLength - _content.size();
+            std::size_t take = (buffer.size() < need) ? buffer.size() : need;
+            _content.append(buffer, 0, take);
+            buffer.erase(0, take);
+            if (_content.size() >= contentLength) {
                 return (true);
             }
         }
@@ -70,5 +77,16 @@ namespace http {
 
     const std::string& Body::getContent() const {
         return (_content);
+    }
+
+    void Body::clear() {
+        std::string empty;
+        _content.swap(empty);
+    }
+
+    std::string Body::takeContent() {
+        std::string out;
+        out.swap(_content);
+        return (out);
     }
 }

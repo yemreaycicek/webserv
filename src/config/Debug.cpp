@@ -151,6 +151,9 @@ namespace config {
         if (!location.allowMethods.empty()) {
             locationLines.push_back("allow_methods: " + joinMethods(location.allowMethods));
         }
+        if (location.clientMaxBodySize != config::UNSET_BODY_SIZE) {
+            locationLines.push_back("client_max_body_size: " + str::to_string(location.clientMaxBodySize));
+        }
 
         for (std::size_t i = 0; i < locationLines.size(); i++) {
             bool isLastLine = (i == locationLines.size() - 1);
