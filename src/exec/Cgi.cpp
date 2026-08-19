@@ -14,7 +14,7 @@
 #include <cerrno>
 
 namespace exec {
-    Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _inputDone(false), _totalFed(0), _maxInputBytes(0), _hadAnyOutput(false), _headersRelayed(false), _lastActivity(0) {}
+    Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _inputDone(false), _hadAnyOutput(false), _headersRelayed(false), _lastActivity(0) {}
     Cgi::~Cgi() {}
 
     std::vector<std::string> Cgi::buildEnv(const RequestData& req, const std::string& scriptPath) const {
@@ -55,16 +55,28 @@ namespace exec {
             if (n > 0) {
                 _inputOffset += n;
                 _lastActivity = time(NULL);
-            } else if (n < 0) {
+            }
+            else if (n < 0) {
+                // Pipe fds are non-blocking (see run()): a full pipe just means
+                // "try again once POLLOUT fires next" rather than a real
+                // failure. Without this, a single write() of the whole
+                // remaining input (which can be much bigger than the pipe's
+                // capacity) would otherwise have to be blocking to not
+                // spuriously fail here — and a blocking write() that outruns
+                // the pipe stalls this whole single-threaded server until the
+                // CGI child drains it, which it can't do if it's
+                // simultaneously blocked writing its own (unread) stdout
+                // back to us.
                 if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
                 _state = FAILED;
                 return ;
             }
         }
         if (_inputOffset >= _input.size()) {
-            // Everything queued so far has been written to the child. Reclaim the
-            // buffer instead of letting it grow forever as more feed() calls keep
-            // appending past an ever-increasing offset.
+            // Reclaim whatever's already been written instead of letting
+            // _input grow forever while feed() keeps appending more — this is
+            // what actually bounds memory for a streamed body, not just the
+            // non-blocking fds above.
             if (!_input.empty()) {
                 _input.clear();
                 _inputOffset = 0;
@@ -80,29 +92,21 @@ namespace exec {
     void Cgi::feed(const std::string& chunk) {
         if (chunk.empty()) return;
         _input += chunk;
-        _totalFed += chunk.size();
+        // A slow-but-steady client that's still handing us body bytes is
+        // making progress, even if the pipe to the CGI hasn't drained any of
+        // it yet — see the comment on _lastActivity.
         _lastActivity = time(NULL);
-    }
-
-    void Cgi::setMaxInputBytes(std::size_t n) {
-        _maxInputBytes = n;
-    }
-
-    bool Cgi::inputOverLimit() const {
-        return (_maxInputBytes != 0 && _totalFed > _maxInputBytes);
     }
 
     void Cgi::finishInput() {
         _inputDone = true;
-        // Deliberately does NOT close _inWrFd here: this can be called from
-        // outside the poll-driven path (Server::feedCgiStream, as soon as the
-        // client's request is complete), and closing the fd without going
-        // through onWritable()/handleCgi() would leave Server's _cgi map and
-        // poller registration stale for that fd number — a dangling entry that
-        // a later accept()/pipe() reusing the same fd number would collide with.
-        // The pipe is already registered for POLLOUT, which will fire on the
-        // next poll cycle regardless (room in the pipe buffer), so onWritable()
-        // closes it properly and Server cleans up its bookkeeping in lockstep.
+        // Deliberately does NOT close _inWrFd here: this can be called outside
+        // the poll-driven path (as soon as the client's request is complete),
+        // and closing the fd without going through onWritable()/Server's
+        // handleCgi() would leave Server's fd bookkeeping stale for that fd
+        // number. The pipe is already registered for POLLOUT, which fires on
+        // the next poll cycle regardless (there's room in the pipe buffer), so
+        // onWritable() closes it properly once it runs.
     }
 
     std::size_t Cgi::pendingInputBytes() const {
@@ -124,8 +128,8 @@ namespace exec {
             waitpid(_pid, NULL, 0);
             _pid = -1;
             // _output may already have been drained via takeOutput() while
-            // streaming, so "did we ever produce output" has to be tracked
-            // separately from "is _output non-empty right now".
+            // relaying it out as it arrived, so "did we ever produce output"
+            // has to be tracked separately from "is _output non-empty now".
             if (_hadAnyOutput) _state = DONE;
             else _state = FAILED;
         }
@@ -183,17 +187,16 @@ namespace exec {
             _outRdFd = -1;
         }
         if (_pid != -1) {
-            //waitpid(_pid, NULL, 0);
-            waitpid(_pid, NULL, WNOHANG); //**** */
+            waitpid(_pid, NULL, 0);
             _pid = -1;
         }
     }
 
     bool Cgi::isTimedOut(int limitSec) const {
         // Idle timeout, not a hard cap: as long as the CGI keeps making
-        // progress (input fed/written, output read) this never fires, however
-        // long the whole transfer takes. It only fires once *limitSec* seconds
-        // pass with no activity at all — i.e. the CGI is genuinely stuck.
+        // progress (input fed, input written, output read) this never fires,
+        // no matter how long the whole transfer takes. It only fires once
+        // limitSec seconds pass with no activity at all.
         return ((time(NULL) - _lastActivity) >= limitSec);
     }
 
@@ -205,7 +208,7 @@ namespace exec {
         _state = FAILED;
     }
 
-    void Cgi::run(RequestData& req, const std::string& interpreter, const std::string& scriptPath) {
+    void Cgi::run(const RequestData& req, const std::string& interpreter, const std::string& scriptPath) {
         int inPipe[2];
         int outPipe[2];
         if (pipe(inPipe) == -1) {
@@ -246,22 +249,19 @@ namespace exec {
         }
         else {
             _lastActivity = time(NULL);
-            // Take ownership of the body without copying it: req.body was already
-            // built specifically for this CGI call and isn't needed afterwards.
-            _input.swap(req.body);
-            _totalFed = _input.size();
-            _maxInputBytes = req.maxBodySize;
+            _input = req.body;
             _inWrFd = inPipe[1];
             _outRdFd = outPipe[0];
             close(inPipe[0]);
             close(outPipe[1]);
-            //fcntl(_inWrFd, F_SETFL, O_NONBLOCK);
-            //fcntl(_outRdFd, F_SETFL, O_NONBLOCK);
-            fcntl(_inWrFd, F_SETFL, fcntl(_inWrFd, F_GETFL) | O_NONBLOCK); /*** */
-            fcntl(_outRdFd, F_SETFL, fcntl(_outRdFd, F_GETFL) | O_NONBLOCK); /*** */
-            // Keep stdin open even if nothing has arrived yet: more body may still
-            // be streamed in via feed(). The caller closes it (via finishInput())
-            // once it knows no more body is coming.
+            // Non-blocking: see the comment in onWritable() for why a blocking
+            // pipe here can deadlock the whole (single-threaded) server against
+            // a CGI that reads-and-writes concurrently on a large body.
+            fcntl(_inWrFd, F_SETFL, fcntl(_inWrFd, F_GETFL) | O_NONBLOCK);
+            fcntl(_outRdFd, F_SETFL, fcntl(_outRdFd, F_GETFL) | O_NONBLOCK);
+            // Keep stdin open even if nothing has arrived yet: more body may
+            // still be streamed in via feed(). The caller closes it (via
+            // finishInput()) once it knows no more body is coming.
             _state = WRITING;
         }
     }

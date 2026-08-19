@@ -28,7 +28,7 @@ namespace exec {
         if (S_ISREG(st.st_mode)) return PATH_FILE;
         return PATH_NONE;
     }
-    
+
     std::string Executor::readFile(const std::string& path) const {
         std::ifstream file(path.c_str());
         if (!file.is_open()) return "";
@@ -105,8 +105,6 @@ namespace exec {
                             std::string content = readFile(indexPath);
                             return _responseBuilder.build(http::status::OK, content, getContentType(indexPath));
                         }
-                        if (!rp.location->autoindex) return (buildError(http::status::NOT_FOUND, sb)); /************************* */
-
                     }
                     if (rp.location->autoindex) {
                         std::string listing = generateAutoindex(rp.fsPath, r.getUri());
@@ -160,38 +158,38 @@ namespace exec {
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
 
-    void Executor::buildRequestData(const http::Request& r, RequestData& out) const {
+    RequestData Executor::buildRequestData(const http::Request& r) const {
+        RequestData rd;
         http::Method m = r.getMethod();
         switch(m) {
             case http::GET:
-                out.method = "GET";
+                rd.method = "GET";
                 break;
             case http::POST:
-                out.method = "POST";
+                rd.method = "POST";
                 break;
             case http::DELETE:
-                out.method = "DELETE";
+                rd.method = "DELETE";
                 break;
             default:
-                out.method = "";
+                rd.method = "";
                 break;
         }
 
         std::string uri = r.getUri();
         std::string::size_type pos = uri.find('?');
         if (pos == std::string::npos) {
-            out.path = uri;
-            out.query = "";
+            rd.path = uri;
+            rd.query = "";
         }
         else {
-            out.path = uri.substr(0, pos);
-            out.query = uri.substr(pos + 1);
+            rd.path = uri.substr(0, pos);
+            rd.query = uri.substr(pos + 1);
         }
-        // Build the (possibly large) body directly into the caller's RequestData
-        // to avoid an extra full-body copy from a temporary.
-        out.body = r.getBody();
-        out.contentLength = r.getContentLength();
-        out.headers = r.getHeaders();
+        rd.body = r.getBody();
+        rd.contentLength = r.getContentLength();
+        rd.headers = r.getHeaders();
+        return (rd);
     }
 
     bool Executor::isCgiRequest(const ResolvedPath& rp) const {
@@ -201,6 +199,7 @@ namespace exec {
         bool endsWith = rp.fsPath.size() >= cgiExtension.size() && rp.fsPath.compare(rp.fsPath.size() - cgiExtension.size(), cgiExtension.size(), cgiExtension) == 0;
         return (endsWith);
     }
+
     std::size_t Executor::getMaxBodySize(const config::ServerBlock& sb, const config::LocationBlock* loc) const {
         if (loc != NULL && loc->clientMaxBodySize != config::UNSET_BODY_SIZE) {
             return (loc->clientMaxBodySize);
@@ -216,7 +215,10 @@ namespace exec {
         }
         return (false);
     }
-    
+
+    // Called as soon as a request's headers are ready, before its (possibly
+    // large) body has fully arrived, so a CGI location can start receiving the
+    // body as it streams in rather than after the whole thing is buffered.
     CgiDispatch Executor::prepareCgi(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi, std::string& outErrorResponse) {
         outCgi.isCgi = false;
         std::string uri = r.getUri();
@@ -226,16 +228,23 @@ namespace exec {
         if (rp.location != NULL && rp.location->redirect.isSet()) return (CGI_NONE);
         if (!isCgiRequest(rp)) return (CGI_NONE);
 
-        // Build directly into outCgi.reqData: avoids an extra full-body copy
-        // that a temporary RequestData + struct assignment would otherwise cost.
-        // Whatever of the body already arrived alongside the headers is picked up
-        // here too; the rest streams in later via Connection::takeAvailableBody().
-        buildRequestData(r, outCgi.reqData);
-        outCgi.reqData.maxBodySize = getMaxBodySize(sb, rp.location);
-        if (!isMethodAllowed(rp.location, outCgi.reqData.method)) {
+        RequestData reqData = buildRequestData(r);
+        if (!isMethodAllowed(rp.location, reqData.method)) {
             outErrorResponse = buildError(http::status::METHOD_NOT_ALLOWED, sb);
             return (CGI_ERROR);
         }
+        // Deliberately NOT checking whether rp.fsPath actually exists here:
+        // that would mean deciding on (and closing out) the request before
+        // its body has necessarily started arriving, which is exactly the
+        // early-response-then-close-early-with-body-still-incoming situation
+        // that risks the OS sending RST instead of a clean FIN once we do
+        // close — some HTTP clients then report a connection error instead
+        // of the response we actually sent. Letting a missing script run the
+        // normal course (spawn attempted, execve() fails in the child, the
+        // parent's write to its now-dead stdin pipe gets EPIPE) produces a
+        // 502 through the ordinary Cgi FAILED path instead, which naturally
+        // only resolves once the CGI dispatch (and so the response) is under
+        // way in lockstep with the body, not decided upfront.
         if (r.getMethod() == http::POST && r.getContentLength() > getMaxBodySize(sb, rp.location)) {
             outErrorResponse = buildError(http::status::CONTENT_TOO_LARGE, sb);
             return (CGI_ERROR);
@@ -243,6 +252,7 @@ namespace exec {
         outCgi.isCgi = true;
         outCgi.interpreter = rp.location->cgiPass;
         outCgi.scriptPath  = rp.fsPath;
+        outCgi.reqData = reqData;
         return (CGI_START);
     }
 
@@ -254,9 +264,9 @@ namespace exec {
         if (rp.location != NULL && rp.location->redirect.isSet()) {
             return _responseBuilder.buildRedirect(static_cast<http::status::Code>(rp.location->redirect.code), rp.location->redirect.target);
         }
-        // CGI locations are dispatched earlier via prepareCgi()/streaming (see
-        // Server), as soon as headers are ready, so by the time execute() runs the
-        // request is known not to be one.
+        // CGI locations are dispatched earlier via prepareCgi() (see Server),
+        // as soon as headers are ready, so by the time execute() runs, the
+        // request is already known not to be one.
 
         http::Method m = r.getMethod();
         if (m == http::GET) {

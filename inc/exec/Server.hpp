@@ -21,17 +21,11 @@
 #include <string>
 
 namespace exec {
+    // Idle-ish hard cap on a CGI's total run time. Output is buffered so it
+    // only really bounds how long we'll wait once things stop moving, but
+    // input can now stream in over a while for a big body, so keep this
+    // generous rather than the old 5s.
     static const int CGI_TIMEOUT_SEC = 60;
-    // Backpressure bounds on how much unwritten CGI input we let pile up per
-    // connection: past the high mark we stop reading more body from the client
-    // socket until the child has drained it back down past the low mark. This
-    // caps memory usage per in-flight upload instead of buffering it whole.
-    static const std::size_t CGI_INPUT_HIGH_MARK = 1 * 1024 * 1024;
-    static const std::size_t CGI_INPUT_LOW_MARK  = 256 * 1024;
-    // NOTE: there is deliberately no equivalent backpressure on the CGI-output
-    // -> client direction. See the comment in Server::relayCgiOutput() for why:
-    // pausing there can deadlock against a client that writes its whole request
-    // before reading any response (perfectly standard HTTP/1.1 behavior).
     class Server {
         public:
             Server(const config::Router& config);
@@ -41,19 +35,31 @@ namespace exec {
         private:
             Server(const Server& other);
             Server&                             operator=(const Server& other);
-            
+
             void                                addCl(int cl_fd, short events);
             void                                delCl(int fd);
             void                                delCgi(Cgi* cgi);
             void                                handleCl(int fd, short revents);
             void                                acceptCl(int ls_fd);
-            void                                spawnCgiStream(int fd, CgiInfo& info, bool bodyComplete);
+            void                                buildCgi(int fd, CgiInfo& info, bool bodyComplete);
+            // As soon as a request's headers are ready, decides whether it's a
+            // CGI location — before its body (possibly large) has fully
+            // arrived — so a CGI can start receiving that body as it streams
+            // in. Returns true if the request has been fully handled by this
+            // call (error queued, or CGI spawned); false if it's not a CGI
+            // location at all, so the caller falls back to normal handling.
             bool                                dispatchCgi(int fd, exec::Connection* conCl);
+            // Feeds whatever new body bytes just arrived on `fd` into the CGI
+            // already streaming for it, closing its stdin once the request
+            // is complete.
             void                                feedCgiStream(int fd, exec::Connection* conCl, Cgi* cgi);
             void                                handleCgi(int fd);
+            // Drains whatever the CGI has newly produced and relays it to the
+            // client as it arrives, instead of waiting for the CGI to finish
+            // and buffering the whole (possibly huge) response — see the
+            // comment on Connection::beginStreamResponse() for the framing.
             void                                relayCgiOutput(Cgi* cgi);
             std::string                         buildStreamedCgiHead(const std::string& headerBlock) const;
-            std::string                         encodeChunk(const std::string& data) const;
             std::string                         cgiToHttp(const std::string& raw) const;
 
             const config::Router&               _config;
@@ -65,9 +71,9 @@ namespace exec {
             std::map<int, std::string>          _clAddr;
             std::map<int, std::string>          _lsAddr;
             std::map<int, Cgi*>                 _cgi;
-            std::map<int, Cgi*>                 _cgiByClient; // client fd -> Cgi still receiving/streaming body
+            std::map<int, Cgi*>                 _cgiByClient; // client fd -> Cgi still receiving streamed body
             std::vector<Cgi*>                   _cgiToClose;
     };
 }
 
-#endif // WEBSERV_EXEC_SERVER_HPP 
+#endif // WEBSERV_EXEC_SERVER_HPP

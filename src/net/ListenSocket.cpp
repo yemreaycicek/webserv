@@ -43,11 +43,11 @@ namespace net {
             close(client_fd);
             return (-1);
         }
-        // Without this, small writes (our chunked-response pieces, or a client
-        // sending in small increments) interact with the peer's delayed-ACK
-        // timer via Nagle's algorithm, each one stalling tens of ms — turning
-        // a sub-second loopback transfer into one slow enough to trip the CGI
-        // timeout on a large body. Best-effort: not fatal if unsupported.
+        // Without this, a client that writes its request body in small
+        // increments (rather than one big write) stalls tens of ms per write
+        // against the peer's delayed-ACK timer via Nagle's algorithm — enough
+        // to turn a sub-second loopback transfer into one slow enough to trip
+        // the CGI timeout on a large body. Best-effort: not fatal if unsupported.
         int y = 1;
         setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &y, sizeof(y));
         return (client_fd);

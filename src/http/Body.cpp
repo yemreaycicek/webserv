@@ -60,10 +60,10 @@ namespace http {
             if (contentLength == 0) {
                 return (true);
             }
-            // Consume whatever is available right away instead of waiting for the
-            // whole body to accumulate in `buffer` first: that would otherwise hold
-            // the entire body twice in memory (once in `buffer`, once in `_content`)
-            // for the whole duration of a large upload.
+            // Move over whatever's available right away instead of waiting for
+            // the whole body to pile up in `buffer` first: a CGI request wants
+            // to drain _content incrementally (see Request::takeBody()) as bytes
+            // arrive, not just once the entire body is here.
             std::size_t need = contentLength - _content.size();
             std::size_t take = (buffer.size() < need) ? buffer.size() : need;
             _content.append(buffer, 0, take);
@@ -80,8 +80,7 @@ namespace http {
     }
 
     void Body::clear() {
-        std::string empty;
-        _content.swap(empty);
+        _content.clear();
     }
 
     std::string Body::takeContent() {

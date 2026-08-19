@@ -69,10 +69,11 @@ namespace exec {
         _clAddr.erase(fd);
         _cgiByClient.erase(fd);
     }
+
     // Spawns the CGI child and wires its pipes into the poller. `bodyComplete`
-    // tells us whether the whole request body is already known (info.reqData.body
-    // holds it all) or whether more will arrive later via feedCgiStream().
-    void Server::spawnCgiStream(int fd, CgiInfo& info, bool bodyComplete) {
+    // says whether the whole request body is already known (info.reqData.body
+    // holds it all) or whether more will still arrive later via feedCgiStream().
+    void Server::buildCgi(int fd, CgiInfo& info, bool bodyComplete) {
         Cgi* cgi = new Cgi(fd);
         cgi->run(info.reqData, info.interpreter, info.scriptPath);
         if (cgi->getState() == FAILED) {
@@ -90,27 +91,28 @@ namespace exec {
         _cgi[outFd] = cgi;
         if (cgi->getInFd() != -1) {
             int inFd = cgi->getInFd();
-            _poller.addFd(inFd, POLLOUT);
+            // A pipe with room reports POLLOUT-ready on every single poll()
+            // call whether or not we actually have anything queued to write —
+            // so if we're still waiting on more feed() calls and there's
+            // nothing queued yet, register with no events instead of POLLOUT,
+            // or that's an instantly-ready fd forever, i.e. a busy loop.
+            // finishInput() (above) always leaves something to do (the close),
+            // so bodyComplete always wants POLLOUT on.
+            short events = (bodyComplete || cgi->pendingInputBytes() > 0) ? POLLOUT : 0;
+            _poller.addFd(inFd, events);
             _cgi[inFd] = cgi;
         }
         if (bodyComplete) {
-            // Nothing left to stream in; stop reading and wait for the CGI's response.
+            // Nothing left to stream in; stop reading the client and wait for
+            // the CGI's response.
             _poller.setFdEvents(fd, 0);
         } else {
-            // Keep reading the client so onReadable() keeps handing us more body.
+            // Keep reading the client so onReadable() keeps handing us more
+            // body via feedCgiStream().
             _cgiByClient[fd] = cgi;
         }
     }
 
-    // As soon as a request's headers are ready, decide whether it targets a CGI
-    // location, before its (possibly huge) body has fully arrived. Feeding the
-    // body straight into the CGI's stdin pipe as it streams in, instead of
-    // buffering the whole thing first, is what keeps memory bounded regardless
-    // of upload size / concurrency.
-    // Returns true if the request has been fully handled by this call (either an
-    // error response was queued, or a CGI stream was started) — the caller must
-    // not run any further routing on it. Returns false only when this isn't a
-    // CGI location at all, so the caller should fall back to normal handling.
     bool Server::dispatchCgi(int fd, exec::Connection* conCl) {
         try {
             const config::ServerBlock& sb = _config.getServerBlock(_clAddr[fd]);
@@ -125,10 +127,10 @@ namespace exec {
                 return (true);
             }
             bool bodyComplete = conCl->isRequestComplete();
-            // Whatever body prepareCgi() already picked up is now inside info.reqData;
-            // drop the connection's own copy of it.
+            // Whatever body prepareCgi() already picked up is now inside
+            // info.reqData; drop the connection's own copy of it.
             conCl->clearRequestBody();
-            spawnCgiStream(fd, info, bodyComplete);
+            buildCgi(fd, info, bodyComplete);
             return (true);
         } catch (const std::exception& e) {
             conCl->setResponse("HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
@@ -137,52 +139,20 @@ namespace exec {
         }
     }
 
-    // Drains whatever new body bytes the parser picked up in the last onReadable()
-    // into the already-running CGI, and applies backpressure: if the child isn't
-    // draining fast enough we stop reading more from the client until it catches up.
     void Server::feedCgiStream(int fd, exec::Connection* conCl, Cgi* cgi) {
         std::string chunk = conCl->takeAvailableBody();
-        if (!chunk.empty()) cgi->feed(chunk);
-        // Covers chunked bodies, whose total size isn't known upfront from a
-        // Content-Length header so it can't be rejected before spawning the CGI.
-        if (cgi->inputOverLimit()) {
-            kill(cgi->getPid(), SIGKILL);
-            std::map<int, Cgi*>::iterator it = _cgi.begin();
-            while (it != _cgi.end()) {
-                if (it->second == cgi) {
-                    _poller.deleteFd(it->first);
-                    std::map<int, Cgi*>::iterator toErase = it++;
-                    _cgi.erase(toErase);
-                } else ++it;
-            }
-            _cgiByClient.erase(fd);
-            // The CGI may already be echoing output back (headers committed to
-            // "200 OK" chunked) by the time we notice the input overran the
-            // limit; setResponse() would then stomp mid-stream data with an
-            // unrelated non-chunked body. Best effort in that case: just end
-            // the chunked stream early instead of pretending we can still send
-            // a clean 413.
-            if (cgi->headersRelayed()) {
-                conCl->appendStreamChunk("0\r\n\r\n");
-                conCl->finishStreamResponse();
-            } else {
-                conCl->setResponse("HTTP/1.1 413 Content Too Large\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
-            }
-            cgi->cleanup();
-            delete cgi;
-            _poller.setFdEvents(fd, POLLOUT);
-            return;
+        cgi->feed(chunk);
+        bool complete = conCl->isRequestComplete();
+        if (complete) cgi->finishInput();
+        // There's now something to do on the CGI's stdin fd (fresh bytes to
+        // write, or — once finishInput() ran — the close): make sure POLLOUT
+        // is on, since buildCgi()/a previous empty round may have paused it.
+        if (cgi->getInFd() != -1 && (!chunk.empty() || complete)) {
+            _poller.setFdEvents(cgi->getInFd(), POLLOUT);
         }
-        if (conCl->isRequestComplete()) {
-            cgi->finishInput();
+        if (complete) {
             _cgiByClient.erase(fd);
-            // Only drop POLLIN: if output has already started streaming back,
-            // POLLOUT must stay registered so the response keeps flowing.
-            _poller.setFdEvents(fd, cgi->headersRelayed() ? POLLOUT : 0);
-            return;
-        }
-        if (cgi->pendingInputBytes() > CGI_INPUT_HIGH_MARK) {
-            _poller.setFdEvents(fd, cgi->headersRelayed() ? POLLOUT : 0);
+            _poller.setFdEvents(fd, 0);
         }
     }
 
@@ -190,34 +160,33 @@ namespace exec {
         exec::Connection *conCl = _connections[fd];
         if (revents & POLLIN) {
             conCl->onReadable();
-
             if (conCl->getState() == CLOSING) {
-                // Client vanished mid-request. If it had a CGI stream in progress,
-                // leave the CGI running (it self-cleans on completion/timeout) but
-                // stop tracking it against this now-dead connection.
+                // Client vanished (or aborted) before completing a request:
+                // onReadable() already flagged this. Without closing it here,
+                // this fd would stay registered for POLLIN forever, and a
+                // socket at EOF reports POLLIN-ready on every single poll()
+                // call — a tight, always-instantly-ready busy loop pegging a
+                // whole CPU core, not just a leaked connection.
                 _cgiByClient.erase(fd);
                 _toClose.push_back(fd);
                 return;
             }
-
-            // NOTE: none of the branches below may `return` early — a connection
-            // that's simultaneously streaming CGI input and output can have both
-            // POLLIN and POLLOUT set in `revents` at once, and the POLLOUT
-            // handling at the bottom of this function must still run in that case.
             std::map<int, Cgi*>::iterator streaming = _cgiByClient.find(fd);
             if (streaming != _cgiByClient.end()) {
                 feedCgiStream(fd, conCl, streaming->second);
-            } else {
+            }
+            else {
+                // As soon as headers are ready, decide whether this is a CGI
+                // location — before the (possibly large) body has fully
+                // arrived — so a big upload can stream straight into the CGI
+                // instead of sitting fully buffered in the connection first.
                 bool handled = conCl->getRequest().isHeadersReady() && !conCl->getRequest().hasError()
-                             && dispatchCgi(fd, conCl); // response queued or CGI stream started
+                             && dispatchCgi(fd, conCl);
                 if (!handled) {
                     if (conCl->isRequestComplete()) {
                         try {
                             const config::ServerBlock& sb = _config.getServerBlock(_clAddr[fd]);
                             std::string res = _executor.execute(sb, conCl->getRequest());
-                            // The request body has already been used to build `res`;
-                            // drop the connection's own copy right away instead of
-                            // holding onto it.
                             conCl->clearRequestBody();
                             conCl->setResponse(res);
                             _poller.setFdEvents(fd, POLLOUT);
@@ -242,36 +211,47 @@ namespace exec {
             if (conCl->getState() == CLOSING){
                 _toClose.push_back(fd);
             }
+            else if (!conCl->hasPendingOutput()) {
+                // A streaming response (CGI output relayed as it arrives) can
+                // have nothing queued right now between two chunks, while
+                // still very much in progress — pause POLLOUT, or a writable
+                // socket with nothing to send reports ready on every single
+                // poll() call, a busy loop. relayCgiOutput()/feedCgiStream()
+                // re-enable it once there's something to send again.
+                _poller.setFdEvents(fd, _cgiByClient.count(fd) ? POLLIN : 0);
+            }
         }
     }
 
     void Server::handleCgi(int fd) {
         Cgi* cgi = _cgi[fd];
-     /*aaççç*/   //if (fd == cgi->getInFd()) cgi->onWritable();
-        bool wasInFd = (fd == cgi->getInFd()); /******** */
-        if (wasInFd) cgi->onWritable(); /************* */
+        bool wasInFd = (fd == cgi->getInFd());
+        if (wasInFd) cgi->onWritable();
         else if (fd == cgi->getOutFd()) {
             cgi->onReadable();
             // Relay whatever just arrived (and, on the very first bytes, the
             // headers) straight to the client instead of buffering the whole
-            // CGI output — this is what keeps a large echoed response from
-            // ballooning memory the same way unbounded input buffering used to.
+            // CGI output — see relayCgiOutput() for why that matters under
+            // concurrent load.
             relayCgiOutput(cgi);
         }
         if (wasInFd) {
-            if (cgi->getInFd() == -1) { /*************** */
+            if (cgi->getInFd() == -1) {
+                // Input side just finished and closed itself (see
+                // Cgi::onWritable()): drop just this fd now instead of
+                // waiting for the whole CGI to finish, or this closed fd
+                // number stays registered with the poller and keeps firing
+                // for nothing.
                 _poller.deleteFd(fd);
                 _cgi.erase(fd);
-            }
-            // The child just drained some (or all) of the queued input: resume
-            // reading from the client if it was paused for backpressure.
-            if (cgi->pendingInputBytes() < CGI_INPUT_LOW_MARK) {
-                std::map<int, Cgi*>::iterator sit = _cgiByClient.find(cgi->getClientFd());
-                if (sit != _cgiByClient.end() && sit->second == cgi) {
-                    // Preserve POLLOUT if the response is already streaming back.
-                    short events = cgi->headersRelayed() ? (POLLIN | POLLOUT) : POLLIN;
-                    _poller.setFdEvents(cgi->getClientFd(), events);
-                }
+            } else if (cgi->pendingInputBytes() == 0) {
+                // Drained everything queued and still waiting on more
+                // feed() calls (finishInput() hasn't run — that always
+                // leaves the close to do, handled above): pause POLLOUT here
+                // too, or this pipe reports writable-forever and pegs a CPU
+                // core doing nothing until the next feed() call re-enables
+                // it (see Server::feedCgiStream()).
+                _poller.setFdEvents(fd, 0);
             }
         }
         if (cgi->getState() == DONE || cgi->getState() == FAILED) {
@@ -283,16 +263,22 @@ namespace exec {
                     _cgi.erase(toErase);
                 } else ++it;
             }
+            // If this CGI died (timeout/error) while still mid-stream, stop
+            // tracking it against its client so feedCgiStream() is never
+            // called again on a Cgi that's about to be destroyed.
+            std::map<int, Cgi*>::iterator cit = _cgiByClient.find(cgi->getClientFd());
+            if (cit != _cgiByClient.end() && cit->second == cgi) _cgiByClient.erase(cit);
             _cgiToClose.push_back(cgi);
         }
     }
 
     // Drains whatever the CGI has newly produced and relays it to the client.
-    // The first bytes are buffered (bounded by the real size of the CGI's own
-    // header block, which is tiny) until the header/body separator is found;
-    // from then on every subsequent chunk is forwarded immediately as an
-    // HTTP/1.1 chunked-encoding piece, so we never need the whole (possibly
-    // huge) response body in memory at once.
+    // The first bytes are buffered only until the header/body separator is
+    // found (bounded by the real size of the CGI's own header block, which is
+    // tiny); from then on every chunk is forwarded as soon as it arrives, so
+    // we never need the whole (possibly huge) response body in memory at
+    // once — buffering it all is what let 20-odd concurrent large CGI
+    // transfers add up to more memory than was actually available.
     void Server::relayCgiOutput(Cgi* cgi) {
         std::map<int, Connection*>::iterator cit = _connections.find(cgi->getClientFd());
         if (cit == _connections.end()) return; // client already gone; let the CGI run to completion and self-clean
@@ -311,29 +297,28 @@ namespace exec {
             cgi->dropOutputPrefix(pos + sepLen);
             cgi->setHeadersRelayed();
             conCl->beginStreamResponse(head);
-            // The client may still be mid-upload (this connection could still be
-            // in _cgiByClient, streaming body in) while output starts flowing
-            // back out already, so keep POLLIN too in that case instead of
-            // clobbering it.
-            bool stillReceiving = _cgiByClient.count(cgi->getClientFd()) != 0;
-            _poller.setFdEvents(cgi->getClientFd(), stillReceiving ? (POLLIN | POLLOUT) : POLLOUT);
+            // The client may still be mid-upload (this connection could
+            // still be in _cgiByClient, streaming body in) while output
+            // starts flowing back out already, so keep POLLIN too in that
+            // case instead of clobbering it.
+            short events = _cgiByClient.count(cgi->getClientFd()) ? (POLLIN | POLLOUT) : POLLOUT;
+            _poller.setFdEvents(cgi->getClientFd(), events);
         }
         std::string body = cgi->takeOutput();
-        if (!body.empty()) conCl->appendStreamChunk(encodeChunk(body));
-        // Deliberately NOT backpressured: pausing here when the client hasn't
-        // drained its send backlog would stop us reading the CGI's stdout, which
-        // (for a CGI that reads-then-writes synchronously, like a simple echo)
-        // stops it reading its stdin, which stalls our writes to it, which
-        // engages *input* backpressure and stops us reading the client — but a
-        // plain HTTP/1.1 client is allowed to write its whole request before
-        // reading any response, so nothing would ever unstick that chain: a
-        // genuine deadlock, only ever broken by the CGI timeout killing the
-        // request. Always draining output avoids that; the tradeoff is that a
-        // slow/non-concurrent-reading client lets `_wrBuf` grow up to the
-        // response size for that one connection, same as the old design, but
-        // input-side streaming still bounds the common case.
+        if (body.empty()) return;
+        conCl->appendStreamChunk(body);
+        // Make sure POLLOUT is on: a previous round may have paused it once
+        // _wrBuf ran dry (see the POLLOUT handling in handleCl()).
+        short events = _cgiByClient.count(cgi->getClientFd()) ? (POLLIN | POLLOUT) : POLLOUT;
+        _poller.setFdEvents(cgi->getClientFd(), events);
     }
 
+    // Turns the CGI's own header block into an HTTP response head. No
+    // Content-Length (the whole point is we don't know the total size up
+    // front) and no chunk framing either — Connection: close plus the actual
+    // socket close once the CGI finishes is what tells the client where the
+    // body ends, which is standard, valid HTTP/1.1 for a non-keep-alive
+    // response.
     std::string Server::buildStreamedCgiHead(const std::string& headerBlock) const {
         std::string statusLine = "200 OK";
         std::string outHeaders;
@@ -350,22 +335,14 @@ namespace exec {
                 if (!val.empty()) statusLine = val;
                 continue;
             }
-            // Neither of these can be trusted/reused: we don't know the total
-            // size upfront (that's the whole point of streaming), and we set
-            // our own Transfer-Encoding below.
+            // Neither of these can be trusted/reused: we don't know the
+            // total size upfront (that's the whole point of streaming), and
+            // chunk framing isn't used here at all (see the comment above).
             if (lower.compare(0, 15, "content-length:") == 0) continue;
             if (lower.compare(0, 18, "transfer-encoding:") == 0) continue;
             outHeaders += line + "\r\n";
         }
-        return ("HTTP/1.1 " + statusLine + "\r\n" + outHeaders +
-                "Transfer-Encoding: chunked\r\n" "Connection: close\r\n\r\n");
-    }
-
-    std::string Server::encodeChunk(const std::string& data) const {
-        if (data.empty()) return ("");
-        std::stringstream ss;
-        ss << std::hex << data.size();
-        return (ss.str() + "\r\n" + data + "\r\n");
+        return ("HTTP/1.1 " + statusLine + "\r\n" + outHeaders + "Connection: close\r\n\r\n");
     }
 
     std::string Server::cgiToHttp(const std::string& raw) const {
@@ -403,21 +380,17 @@ namespace exec {
             continue;
             outHeaders += line + "\r\n";
         }
-        std::string statusPrefix = "HTTP/1.1 " + statusLine + "\r\n" + outHeaders +
-        "Content-Length: " + str::to_string(body.size()) + "\r\n" +
-        "Connection: close\r\n\r\n";
-        std::string result;
-        result.reserve(statusPrefix.size() + body.size());
-        result += statusPrefix;
-        result += body;
-        return result;
-     /*aççç*/   // std::stringstream res;
-        // res << "HTTP/1.1 " << statusLine << "\r\n";
-        // res << outHeaders;
-        // res << "Content-Length: " << body.size() << "\r\n";
-        // res << "\r\n";
-        // res << body;
-        // return res.str();
+        std::stringstream res;
+        res << "HTTP/1.1 " << statusLine << "\r\n";
+        res << outHeaders;
+        res << "Content-Length: " << body.size() << "\r\n";
+        // Without this, a client that assumes the connection stays open (the
+        // default in HTTP/1.1) can reuse it right after a CGI response and get
+        // "connection reset by peer" once we actually close it.
+        res << "Connection: close\r\n";
+        res << "\r\n";
+        res << body;
+        return res.str();
     }
 
 
@@ -425,14 +398,15 @@ namespace exec {
         std::map<int, Connection*>::iterator it = _connections.find(cgi->getClientFd());
         if (it != _connections.end()) {
             if (cgi->headersRelayed()) {
-                // Already streaming: flush whatever's left and close out the
-                // chunked body. If the CGI died mid-stream (FAILED) after having
-                // already committed to "200 OK", the best we can do is end the
-                // stream early — the client sees a truncated body, same as any
-                // proxy would produce when its upstream drops mid-response.
+                // Already streaming: flush whatever's left and let the
+                // response end (no framing to close out — see
+                // buildStreamedCgiHead()). If the CGI died mid-stream
+                // (FAILED) after already committing to "200 OK", the best we
+                // can do is end it here — the client sees a truncated body,
+                // same as any proxy would produce when its upstream drops
+                // mid-response.
                 std::string remaining = cgi->takeOutput();
-                if (!remaining.empty()) it->second->appendStreamChunk(encodeChunk(remaining));
-                it->second->appendStreamChunk("0\r\n\r\n");
+                if (!remaining.empty()) it->second->appendStreamChunk(remaining);
                 it->second->finishStreamResponse();
             } else {
                 std::string res;
@@ -442,11 +416,6 @@ namespace exec {
             }
             _poller.setFdEvents(cgi->getClientFd(), POLLOUT);
         }
-        // In case this CGI died (timeout/error) while still mid-stream, stop
-        // tracking it against its client so feedCgiStream() is never called again
-        // on a Cgi that's about to be destroyed.
-        std::map<int, Cgi*>::iterator cit = _cgiByClient.find(cgi->getClientFd());
-        if (cit != _cgiByClient.end() && cit->second == cgi) _cgiByClient.erase(cit);
         cgi->cleanup();
         delete cgi;
     }
@@ -457,20 +426,20 @@ namespace exec {
             for (size_t i = 0; i < pl.size(); ++i) {
                 int fd = pl[i].fd;
                 // pl is a snapshot taken before this loop started: handling an
-                // earlier entry can finish/clean up a CGI (or close a connection)
-                // whose fd also has a later, now-stale entry in this same batch.
-                // Re-check membership at dispatch time instead of assuming
-                // "not a listener, not a CGI fd => must still be a live client",
-                // which would otherwise default-construct (and use) a NULL
-                // Connection* for a fd nothing owns anymore.
+                // earlier entry can already have closed a connection (or cleaned
+                // up a CGI) whose fd also has a later, now-stale entry in this
+                // same batch. Re-check membership instead of assuming "not a
+                // listener, not a CGI fd => must still be a live client", which
+                // would otherwise default-construct (and dereference) a NULL
+                // Connection* via _connections[fd].
                 if (_lsAddr.count(fd))              acceptCl(fd);
-                else if (_cgi.count(fd))             handleCgi(fd);
-                else if (_connections.count(fd))     handleCl(fd, pl[i].revents);
+                else if (_cgi.count(fd))            handleCgi(fd);
+                else if (_connections.count(fd))    handleCl(fd, pl[i].revents);
             }
-            // Collect distinct timed-out Cgi*s first: a single Cgi has two entries
-            // in _cgi (its in-fd and out-fd), so acting while iterating would both
-            // queue it for cleanup twice (double free via delCgi) and never drop
-            // its now-stale fd entries from _cgi/_poller.
+            // Collect distinct timed-out Cgi*s first: a single Cgi has two
+            // entries in _cgi (its in-fd and out-fd), so acting on it while
+            // iterating would both queue it for cleanup twice (double free via
+            // delCgi) and never drop its now-stale fd entries from _cgi/_poller.
             std::vector<Cgi*> timedOut;
             for (std::map<int, Cgi*>::const_iterator it = _cgi.begin(); it != _cgi.end(); ++it) {
                 Cgi* cgi = it->second;
@@ -494,6 +463,8 @@ namespace exec {
                         _cgi.erase(toErase);
                     } else ++sub;
                 }
+                std::map<int, Cgi*>::iterator cit = _cgiByClient.find(cgi->getClientFd());
+                if (cit != _cgiByClient.end() && cit->second == cgi) _cgiByClient.erase(cit);
                 _cgiToClose.push_back(cgi);
             }
             for (size_t i = 0; i < _toClose.size(); ++i) {

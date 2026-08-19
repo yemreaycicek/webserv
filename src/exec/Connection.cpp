@@ -11,8 +11,8 @@
 #include <cerrno>
 
 namespace exec {
-    // Connection::Connection(int fd) : _socket(fd), _state(READING_REQUEST) {}
-    Connection::Connection(int fd) : _socket(fd), _wrOffset(0), _wrComplete(true), _state(READING_REQUEST) {}
+    Connection::Connection(int fd) : _socket(fd), _wrComplete(true), _state(READING_REQUEST) {}
+
     Connection::~Connection() {}
 
     int Connection::getFd() const{
@@ -32,13 +32,12 @@ namespace exec {
     }
 
     void Connection::onReadable(){
-        //char bf[4096];
-        char bf[65536]; /****** */
+        char bf[4096];
         ssize_t rc = recv(getFd(), bf, sizeof(bf), 0);
         if (rc > 0) {
             _request.parse(std::string(bf, rc));
         } else if (rc < 0) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) return; // spurious wakeup, nothing to read yet
+            if (errno == EAGAIN || errno == EWOULDBLOCK) return; // non-blocking socket, nothing to read yet
             _state = CLOSING;
         } else { // rc == 0: peer closed
             _state = CLOSING;
@@ -46,54 +45,49 @@ namespace exec {
     }
 
     void Connection::onWritable(){
-        if (_wrOffset < _wrBuf.size()) {
-            ssize_t sd = send(getFd(), _wrBuf.c_str() + _wrOffset, _wrBuf.size() - _wrOffset, 0);
+        if (!_wrBuf.empty()) {
+            ssize_t sd = send(getFd(), _wrBuf.c_str(), _wrBuf.size(), 0);
             if (sd > 0) {
-                _wrOffset += sd;
-            } else if (sd < 0) {
+                _wrBuf.erase(0, sd);
+            }
+            else if (sd < 0) {
                 if (errno == EAGAIN || errno == EWOULDBLOCK) return; // socket buffer full, try again later
                 _state = CLOSING;
                 return;
-            } else {
+            }
+            else {
                 _state = CLOSING;
                 return;
             }
         }
-        if (_wrOffset >= _wrBuf.size()) {
-            // Reclaim whatever's already been sent instead of letting _wrBuf grow
-            // forever while a streaming response keeps appendStreamChunk()-ing.
-            if (!_wrBuf.empty()) {
-                _wrBuf.clear();
-                _wrOffset = 0;
-            }
-            if (_wrComplete) _state = CLOSING;
-        }
+        // Only actually close once nothing is queued AND no more is coming —
+        // a streaming response can have _wrBuf empty between two chunks of
+        // CGI output while it's still very much in progress.
+        if (_wrBuf.empty() && _wrComplete) _state = CLOSING;
     }
 
     void Connection::setResponse(const std::string& resp){
         _wrBuf = resp;
-        _wrOffset = 0;
         _wrComplete = true;
         _state = SENDING_RESPONSE;
     }
 
     void Connection::beginStreamResponse(const std::string& head){
         _wrBuf = head;
-        _wrOffset = 0;
         _wrComplete = false;
         _state = SENDING_RESPONSE;
     }
 
-    void Connection::appendStreamChunk(const std::string& chunk){
-        _wrBuf += chunk;
+    void Connection::appendStreamChunk(const std::string& data){
+        _wrBuf += data;
     }
 
     void Connection::finishStreamResponse(){
         _wrComplete = true;
     }
 
-    std::size_t Connection::pendingSendBytes() const {
-        return (_wrBuf.size() - _wrOffset);
+    bool Connection::hasPendingOutput() const {
+        return (!_wrBuf.empty());
     }
 
     void Connection::clearRequestBody(){

@@ -43,9 +43,9 @@ namespace http {
             void clearBody();
             std::string takeBody();
             std::string getHeader(const std::string& key) const;
-            // True once the request line + headers are fully parsed, i.e. the method,
-            // URI and Content-Length/Transfer-Encoding are known even if the body
-            // (possibly huge) hasn't fully arrived yet.
+            // True once the request line + headers are fully parsed (method, URI,
+            // Content-Length/Transfer-Encoding all known), even if the body
+            // itself hasn't fully arrived yet.
             bool isHeadersReady() const;
             std::size_t getContentLength() const;
 

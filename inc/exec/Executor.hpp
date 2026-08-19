@@ -25,11 +25,11 @@ namespace exec {
     };
 
     // Outcome of trying to route a request to a CGI location as soon as its
-    // headers are known (before the, possibly huge, body has fully arrived).
+    // headers are known, before its (possibly large) body has fully arrived.
     enum CgiDispatch {
-        CGI_NONE,   // not a CGI location: caller should fall back to normal buffered handling
-        CGI_ERROR,  // a CGI location, but the request is invalid; outErrorResponse is ready to send
-        CGI_START   // valid CGI request; outCgi is ready (empty/partial body) to spawn and stream into
+        CGI_NONE,   // not a CGI location: caller falls back to normal handling
+        CGI_ERROR,  // a CGI location, but the request is invalid; outErrorResponse is ready
+        CGI_START   // valid CGI request; outCgi is ready to spawn and stream into
     };
 
     class Executor {
@@ -52,7 +52,7 @@ namespace exec {
             std::string     buildError(http::status::Code code, const config::ServerBlock& sb) const;
             std::string     handlePost(const config::ServerBlock& sb, const http::Request& r);
             std::string     handleDelete(const config::ServerBlock& sb, const http::Request& r);
-            void            buildRequestData(const http::Request& r, RequestData& out) const;
+            RequestData     buildRequestData(const http::Request& r) const;
             std::size_t     getMaxBodySize(const config::ServerBlock& sb, const config::LocationBlock* loc) const;
             bool            isCgiRequest(const ResolvedPath& rp) const;
             bool            isMethodAllowed(const config::LocationBlock* loc, const std::string& method) const;
@@ -62,4 +62,4 @@ namespace exec {
     };
 }
 
-#endif // WEBSERV_EXEC_EXECUTOR_HPP 
+#endif // WEBSERV_EXEC_EXECUTOR_HPP

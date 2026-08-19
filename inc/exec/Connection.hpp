@@ -33,18 +33,21 @@ namespace exec {
             void                    setResponse(const std::string& resp);
             void                    clearRequestBody();
             std::string             takeAvailableBody();
-            // Streaming response support (used for CGI output, so we never need
-            // the whole body in memory at once): start with the status+headers,
-            // append body chunks as they become available, then mark it finished
-            // once no more data is coming.
+            // Streaming response support (used for CGI output, so we never
+            // need the whole thing in memory at once): start with the
+            // status line + headers, append body bytes as they become
+            // available, then mark it finished once no more is coming. No
+            // chunk framing — the response carries no Content-Length and the
+            // connection is closed once finished, which is what tells the
+            // client where the body ends (standard, valid HTTP/1.1 for a
+            // Connection: close response).
             void                    beginStreamResponse(const std::string& head);
-            void                    appendStreamChunk(const std::string& chunk);
+            void                    appendStreamChunk(const std::string& data);
             void                    finishStreamResponse();
-            std::size_t             pendingSendBytes() const;
+            bool                    hasPendingOutput() const;
         private:
             net::Socket             _socket;
             std::string             _wrBuf;
-            std::size_t             _wrOffset; //****** */
             bool                    _wrComplete; // false while more data may still be appended
             http::Request           _request;
             ConState                _state;
