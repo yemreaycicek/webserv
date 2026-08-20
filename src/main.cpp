@@ -2,11 +2,11 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-25 / 21:23:58
+ * @ Modified time: 2026-08-20 / 15:56:16
  */
 
 #include <string>
-
+#include <csignal>
 #include "config/Lexer.hpp"
 #include "config/Parser.hpp"
 #include "config/Router.hpp"
@@ -16,6 +16,7 @@
 
 int main(int argc, char **argv)
 {
+    signal(SIGPIPE, SIG_IGN);
     try {
         arg::Parser     args(argc, argv);
 
