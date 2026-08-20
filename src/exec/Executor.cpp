@@ -110,6 +110,13 @@ namespace exec {
                         std::string listing = generateAutoindex(rp.fsPath, r.getUri());
                         if (!listing.empty()) return (_responseBuilder.build(http::status::OK, listing, "text/html"));
                     }
+                    // No index was ever configured for this location and
+                    // listing is off: the directory itself exists, we just
+                    // refuse to show it — 403 Forbidden.
+                    // An index *was* configured but this particular
+                    // directory doesn't have that file: that's the more
+                    // ordinary "the thing you asked for isn't here" — 404.
+                    if (indexName.empty()) return (buildError(http::status::FORBIDDEN, sb));
                     return (buildError(http::status::NOT_FOUND, sb));
                 }
                 std::string content = readFile(rp.fsPath);
@@ -127,7 +134,10 @@ namespace exec {
         for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
             if (*it == "POST") {
                 if (r.getBody().size() > getMaxBodySize(sb, rp.location)) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
-                if (!rp.location->uploadEnable) return (buildError(http::status::NOT_FOUND, sb));
+                // POST itself is allowed here, but uploading specifically
+                // isn't turned on for this location — that's 403 Forbidden,
+                // not 404 (the location does exist and does handle POST).
+                if (!rp.location->uploadEnable) return (buildError(http::status::FORBIDDEN, sb));
 
                 std::string uri = r.getUri();
                 std::string fileName = uri.substr(uri.rfind('/') + 1);
