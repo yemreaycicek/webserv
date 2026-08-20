@@ -1,0 +1,1 @@
+Location with POST allowed in allow_methods but upload_enable off.

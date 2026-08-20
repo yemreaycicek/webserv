@@ -1,0 +1,1 @@
+GET-only fixture file. marker=TESTER_GETONLY_OK
