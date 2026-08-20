@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-17 / 14:02:31
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-04 / 16:57:43
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-20 / 15:39:00
  */
 
 #include "config/Debug.hpp"
@@ -150,6 +150,9 @@ namespace config {
         }
         if (!location.allowMethods.empty()) {
             locationLines.push_back("allow_methods: " + joinMethods(location.allowMethods));
+        }
+        if (location.clientMaxBodySize != config::UNSET_BODY_SIZE) {
+            locationLines.push_back("client_max_body_size: " + str::to_string(location.clientMaxBodySize));
         }
 
         for (std::size_t i = 0; i < locationLines.size(); i++) {
