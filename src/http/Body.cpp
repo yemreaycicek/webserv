@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-24 / 12:54:35
- * @ Modified by: yaycicek
- * @ Modified time: 2026-08-03 / 16:06:56
+ * @ Modified by: akosaca
+ * @ Modified time: 2026-08-20 / 15:58:43
  */
 
 #include "http/Body.hpp"
@@ -57,18 +57,27 @@ namespace http {
                 buffer.erase(0, crlf + 2 + chunkSize + 2);
             }
         } else {
-            if (contentLength == 0) {
-                return (true);
-            } else if (buffer.length() >= contentLength) {
-                _content += buffer.substr(0, contentLength);
-                buffer.erase(0, contentLength);
-                return (true);
-            }
+            if (contentLength == 0) return (true);
+            std::size_t need = contentLength - _content.size();
+            std::size_t take = (buffer.size() < need) ? buffer.size() : need;
+            _content.append(buffer, 0, take);
+            buffer.erase(0, take);
+            if (_content.size() >= contentLength) return (true);
         }
         return (false);
     }
 
     const std::string& Body::getContent() const {
         return (_content);
+    }
+
+    void Body::clear() {
+        _content.clear();
+    }
+
+    std::string Body::takeContent() {
+        std::string out;
+        out.swap(_content);
+        return (out);
     }
 }

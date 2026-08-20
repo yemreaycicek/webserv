@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-15 / 12:19:07
+ * @ Modified time: 2026-08-20 / 15:59:31
  */
 
 #ifndef WEBSERV_HTPP_REQUEST_HPP
@@ -40,7 +40,11 @@ namespace http {
             Method getMethod() const;
             const std::string& getUri() const;
             const std::string& getBody() const;
+            void clearBody();
+            std::string takeBody();
             std::string getHeader(const std::string& key) const;
+            bool isHeadersReady() const;
+            std::size_t getContentLength() const;
 
             const std::map<std::string, std::string>& getHeaders() const; //! check
     
