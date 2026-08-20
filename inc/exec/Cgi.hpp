@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 20:22:57
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 15:51:00
+ * @ Modified time: 2026-08-20 / 16:53:52
  */
 
 
@@ -43,33 +43,27 @@ namespace exec {
             Cgi(int clientFd);
             ~Cgi();
 
-            void    run(const RequestData& req, const std::string& interpreter, const std::string& scriptPath); //cgi başlatmak için. initial işlemler gerçekleştiririz
+            void    run(const RequestData& req, const std::string& interpreter, const std::string& scriptPath);
             void    onWritable();
             void    onReadable();
             void    feed(const std::string& chunk);
             void    finishInput();
-            void    cleanup();
-            void    setTimedOut();
-            void        dropOutputPrefix(std::size_t n);
-            void        setHeadersRelayed();
-
             std::size_t pendingInputBytes() const;
-            
-            std::string takeOutput();
-            
             State   getState() const;
-            
             int     getInFd()  const;
             int     getOutFd() const;
-            int     getClientFd() const;
-            
-            const   std::string& rawOutput() const;
-            const   std::string& peekOutput() const;
-            
-            pid_t   getPid() const;
-            
+            void    cleanup();
+            int getClientFd() const;
+            const std::string& rawOutput() const;
+            bool isTimedOut(int limitSec) const;
+            pid_t getPid() const;
+            void setTimedOut();
+
+            const std::string& peekOutput() const;
+            void        dropOutputPrefix(std::size_t n);
+            std::string takeOutput();
             bool        headersRelayed() const;
-            bool        isTimedOut(int limitSec) const;
+            void        setHeadersRelayed();
 
         private:
             Cgi(const Cgi&);
