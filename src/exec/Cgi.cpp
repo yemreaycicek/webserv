@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-15 / 16:10:49
+ * @ Modified time: 2026-08-20 / 15:53:06
  */
 
 
@@ -10,9 +10,11 @@
 #include "exec/Cgi.hpp"
 #include <sstream>
 #include <sys/wait.h>
+#include <fcntl.h>
+#include <cerrno>
 
 namespace exec {
-    Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _startedAt(0) {}
+    Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _inputDone(false), _hadAnyOutput(false), _headersRelayed(false), _lastActivity(0) {}
     Cgi::~Cgi() {}
 
     std::vector<std::string> Cgi::buildEnv(const RequestData& req, const std::string& scriptPath) const {
@@ -28,7 +30,7 @@ namespace exec {
         std::map<std::string, std::string>::const_iterator it = req.headers.find("Content-Type");
         if (it != req.headers.end()) env.push_back("CONTENT_TYPE=" + it->second);
         std::stringstream ss;
-        ss << req.body.size();
+        ss << req.contentLength;
         env.push_back("CONTENT_LENGTH=" + ss.str());
 
         for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
@@ -48,40 +50,88 @@ namespace exec {
     }
 
     void Cgi::onWritable() {
-        ssize_t n;
-        n = write(_inWrFd, (_input.c_str() + _inputOffset), (_input.size() - _inputOffset));
-        if (n > 0) {
-            _inputOffset += n;
+        if (_inputOffset < _input.size()) {
+            ssize_t n = write(_inWrFd, (_input.c_str() + _inputOffset), (_input.size() - _inputOffset));
+            if (n > 0) {
+                _inputOffset += n;
+                _lastActivity = time(NULL);
+            }
+            else if (n < 0) {
+                if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
+                _state = FAILED;
+                return ;
+            }
         }
-        else if (n < 0) {
-            _state = FAILED;
-            return ;
-        }
-        if (_inputOffset == _input.size()) {
-            close (_inWrFd);
-            _inWrFd = -1;
-            _state = READING;
+        if (_inputOffset >= _input.size()) {
+            if (!_input.empty()) {
+                _input.clear();
+                _inputOffset = 0;
+            }
+            if (_inputDone) {
+                close (_inWrFd);
+                _inWrFd = -1;
+                _state = READING;
+            }
         }
     }
 
+    void Cgi::feed(const std::string& chunk) {
+        if (chunk.empty()) return;
+        _input += chunk;
+        _lastActivity = time(NULL);
+    }
+
+    void Cgi::finishInput() {
+        _inputDone = true;
+    }
+
+    std::size_t Cgi::pendingInputBytes() const {
+        return (_input.size() - _inputOffset);
+    }
+
     void Cgi::onReadable() {
-        char buf[4096];
+        char buf[65536];
         ssize_t n;
         n = read(_outRdFd, buf, sizeof(buf));
         if (n > 0) {
             _output.append(buf, n);
+            _hadAnyOutput = true;
+            _lastActivity = time(NULL);
         }
         else if (n == 0) {
             close(_outRdFd);
             _outRdFd = -1;
             waitpid(_pid, NULL, 0);
             _pid = -1;
-            if (!_output.empty()) _state = DONE;
+            if (_hadAnyOutput) _state = DONE;
             else _state = FAILED;
         }
         else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
             _state = FAILED;
         }
+    }
+
+    const std::string& Cgi::peekOutput() const {
+        return (_output);
+    }
+
+    void Cgi::dropOutputPrefix(std::size_t n) {
+        _output.erase(0, n);
+    }
+
+    std::string Cgi::takeOutput() {
+        std::string out;
+        out.swap(_output);
+        return (out);
+    }
+
+    bool Cgi::headersRelayed() const {
+        return (_headersRelayed);
+    }
+
+    void Cgi::setHeadersRelayed() {
+        _headersRelayed = true;
     }
 
     int Cgi::getOutFd() const {
@@ -116,7 +166,7 @@ namespace exec {
     }
 
     bool Cgi::isTimedOut(int limitSec) const {
-        return ((time(NULL) - _startedAt) >= limitSec);
+        return ((time(NULL) - _lastActivity) >= limitSec);
     }
 
     pid_t Cgi::getPid() const {
@@ -167,20 +217,15 @@ namespace exec {
             _exit(1);
         }
         else {
-            _startedAt = time(NULL);
+            _lastActivity = time(NULL);
             _input = req.body;
             _inWrFd = inPipe[1];
             _outRdFd = outPipe[0];
             close(inPipe[0]);
             close(outPipe[1]);
-            _state = READING;
-            if (_input.empty()) {
-                close(_inWrFd);
-                _inWrFd = -1;
-                _state = READING;
-            } else {
-                _state = WRITING;
-            }
+            fcntl(_inWrFd, F_SETFL, fcntl(_inWrFd, F_GETFL) | O_NONBLOCK);
+            fcntl(_outRdFd, F_SETFL, fcntl(_outRdFd, F_GETFL) | O_NONBLOCK);
+            _state = WRITING;
         }
     }
 }

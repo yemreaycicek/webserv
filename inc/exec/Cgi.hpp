@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 20:22:57
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-15 / 13:54:37
+ * @ Modified time: 2026-08-20 / 15:51:00
  */
 
 
@@ -29,6 +29,8 @@ namespace exec {
         std::string query;
         std::map<std::string, std::string> headers;
         std::string body;
+        std::size_t contentLength;
+        RequestData() : contentLength(0) {}
     };
     struct CgiInfo {
         bool        isCgi;
@@ -42,17 +44,32 @@ namespace exec {
             ~Cgi();
 
             void    run(const RequestData& req, const std::string& interpreter, const std::string& scriptPath); //cgi başlatmak için. initial işlemler gerçekleştiririz
-            void    onWritable(); //yazıyorken çağırırız
-            void    onReadable(); // okuyorken çağııryoruz
-            State   getState() const; //durum paylaşmak için
-            int     getInFd()  const; //in fd sayısını örğenmek için
-            int     getOutFd() const; //out fd sayısını örğenmek için
-            void    cleanup(); //temizlik yapmka için
-            int getClientFd() const;
-            const std::string& rawOutput() const;
-            bool isTimedOut(int limitSec) const;
-            pid_t getPid() const;
-            void setTimedOut();
+            void    onWritable();
+            void    onReadable();
+            void    feed(const std::string& chunk);
+            void    finishInput();
+            void    cleanup();
+            void    setTimedOut();
+            void        dropOutputPrefix(std::size_t n);
+            void        setHeadersRelayed();
+
+            std::size_t pendingInputBytes() const;
+            
+            std::string takeOutput();
+            
+            State   getState() const;
+            
+            int     getInFd()  const;
+            int     getOutFd() const;
+            int     getClientFd() const;
+            
+            const   std::string& rawOutput() const;
+            const   std::string& peekOutput() const;
+            
+            pid_t   getPid() const;
+            
+            bool        headersRelayed() const;
+            bool        isTimedOut(int limitSec) const;
 
         private:
             Cgi(const Cgi&);
@@ -66,8 +83,11 @@ namespace exec {
             pid_t   _pid;
             std::string _input;
             std::size_t _inputOffset;
+            bool        _inputDone;
             std::string _output;
-            time_t _startedAt;
+            bool        _hadAnyOutput;
+            bool        _headersRelayed;
+            time_t _lastActivity;
     };
 }
 
