@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-15 / 15:38:46
+ * @ Modified time: 2026-08-20 / 16:06:11
  */
 
 #include "exec/Executor.hpp"
@@ -28,7 +28,7 @@ namespace exec {
         if (S_ISREG(st.st_mode)) return PATH_FILE;
         return PATH_NONE;
     }
-    
+
     std::string Executor::readFile(const std::string& path) const {
         std::ifstream file(path.c_str());
         if (!file.is_open()) return "";
@@ -110,6 +110,7 @@ namespace exec {
                         std::string listing = generateAutoindex(rp.fsPath, r.getUri());
                         if (!listing.empty()) return (_responseBuilder.build(http::status::OK, listing, "text/html"));
                     }
+                    if (indexName.empty()) return (buildError(http::status::FORBIDDEN, sb));
                     return (buildError(http::status::NOT_FOUND, sb));
                 }
                 std::string content = readFile(rp.fsPath);
@@ -126,8 +127,8 @@ namespace exec {
         const std::vector<std::string>& methods = rp.location->allowMethods;
         for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
             if (*it == "POST") {
-                if (r.getBody().size() > sb.clientMaxBodySize) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
-                if (!rp.location->uploadEnable) return (buildError(http::status::NOT_FOUND, sb));
+                if (r.getBody().size() > getMaxBodySize(sb, rp.location)) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
+                if (!rp.location->uploadEnable) return (buildError(http::status::FORBIDDEN, sb));
 
                 std::string uri = r.getUri();
                 std::string fileName = uri.substr(uri.rfind('/') + 1);
@@ -187,6 +188,7 @@ namespace exec {
             rd.query = uri.substr(pos + 1);
         }
         rd.body = r.getBody();
+        rd.contentLength = r.getContentLength();
         rd.headers = r.getHeaders();
         return (rd);
     }
@@ -199,6 +201,13 @@ namespace exec {
         return (endsWith);
     }
 
+    std::size_t Executor::getMaxBodySize(const config::ServerBlock& sb, const config::LocationBlock* loc) const {
+        if (loc != NULL && loc->clientMaxBodySize != config::UNSET_BODY_SIZE) {
+            return (loc->clientMaxBodySize);
+        }
+        return (sb.clientMaxBodySize);
+    }
+
     bool Executor::isMethodAllowed(const config::LocationBlock* loc, const std::string& method) const {
         if (method.empty()) return (false);
         const std::vector<std::string>& methods = loc->allowMethods;
@@ -207,25 +216,39 @@ namespace exec {
         }
         return (false);
     }
-    
-    std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi) {
+
+    CgiDispatch Executor::prepareCgi(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi, std::string& outErrorResponse) {
         outCgi.isCgi = false;
+        std::string uri = r.getUri();
+        std::string::size_type qpos = uri.find('?');
+        std::string pathOnly = (qpos == std::string::npos) ? uri : uri.substr(0, qpos);
+        exec::ResolvedPath rp = _resolver.resolve(sb, pathOnly);
+        if (rp.location != NULL && rp.location->redirect.isSet()) return (CGI_NONE);
+        if (!isCgiRequest(rp)) return (CGI_NONE);
+
+        RequestData reqData = buildRequestData(r);
+        if (!isMethodAllowed(rp.location, reqData.method)) {
+            outErrorResponse = buildError(http::status::METHOD_NOT_ALLOWED, sb);
+            return (CGI_ERROR);
+        }
+        if (r.getMethod() == http::POST && r.getContentLength() > getMaxBodySize(sb, rp.location)) {
+            outErrorResponse = buildError(http::status::CONTENT_TOO_LARGE, sb);
+            return (CGI_ERROR);
+        }
+        outCgi.isCgi = true;
+        outCgi.interpreter = rp.location->cgiPass;
+        outCgi.scriptPath  = rp.fsPath;
+        outCgi.reqData = reqData;
+        return (CGI_START);
+    }
+
+    std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r) {
         std::string uri = r.getUri();
         std::string::size_type qpos = uri.find('?');
         std::string pathOnly = (qpos == std::string::npos) ? uri : uri.substr(0, qpos);
         exec::ResolvedPath rp = _resolver.resolve(sb, pathOnly);
         if (rp.location != NULL && rp.location->redirect.isSet()) {
             return _responseBuilder.buildRedirect(static_cast<http::status::Code>(rp.location->redirect.code), rp.location->redirect.target);
-        }
-        if (isCgiRequest(rp)) {
-            RequestData reqData = buildRequestData(r);
-            if (!isMethodAllowed(rp.location, reqData.method)) return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
-            if (getPathType(rp.fsPath) != PATH_FILE) return (buildError(http::status::NOT_FOUND, sb));
-            outCgi.isCgi = true;
-            outCgi.interpreter = rp.location->cgiPass;
-            outCgi.scriptPath  = rp.fsPath;
-            outCgi.reqData = reqData;
-            return ("");
         }
 
         http::Method m = r.getMethod();
