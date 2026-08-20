@@ -2,12 +2,14 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:07:45
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-21 / 20:47:02
+ * @ Modified time: 2026-08-20 / 15:56:59
  */
 
 #include "net/ListenSocket.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <string>
 #include <stdexcept>
 #include <fcntl.h>
@@ -41,6 +43,8 @@ namespace net {
             close(client_fd);
             return (-1);
         }
+        int y = 1;
+        setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &y, sizeof(y));
         return (client_fd);
     }
 
