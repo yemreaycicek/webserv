@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-03 / 17:29:34
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 14:34:14
+ * @ Modified time: 2026-08-29 / 15:46:27
  */
 
 #include "config/Lexer.hpp"
@@ -40,7 +40,7 @@ namespace config {
                 break;
             }
 
-            char c = _input[_pos];
+            char c = _input.at(_pos);
             switch (c) {
                 case CHAR_OPENING_BRACE:
                     addToken(tokens, TOKEN_OPENING_BRACE, "{");
