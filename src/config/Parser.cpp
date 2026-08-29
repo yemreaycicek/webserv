@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-29 / 19:14:53
+ * @ Modified time: 2026-08-29 / 19:43:24
  */
 
 #include "config/Parser.hpp"
@@ -297,6 +297,10 @@ namespace config {
     }
 
     std::size_t Parser::parseSize(const std::string& value, const std::string& directiveName) const {
+        if (value.at(0) == '-') {
+            throw SyntaxError("Size value '" + value + "' for directive '" + directiveName + "' cannot be negative");
+        }
+
         std::size_t len = value.length();
         char unit = std::tolower(value.at(len - 1));
         std::string numberString = value;
