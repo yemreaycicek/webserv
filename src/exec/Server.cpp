@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 16:15:36
+ * @ Modified time: 2026-09-01 / 18:04:11
  */
 
 #include "exec/Server.hpp"
@@ -178,6 +178,13 @@ namespace exec {
             conCl->onWritable();
             if (conCl->getState() == CLOSING) _toClose.push_back(fd);
             else if (!conCl->hasPendingOutput()) _poller.setFdEvents(fd, _cgiByClient.count(fd) ? POLLIN : 0);
+        }
+        if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            if (conCl->getState() != CLOSING) {
+                _cgiByClient.erase(fd);
+                _toClose.push_back(fd);
+            }
+            return;
         }
     }
 
