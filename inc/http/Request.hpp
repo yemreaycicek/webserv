@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
- * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 15:59:31
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-09-01 / 16:19:23
  */
 
 #ifndef WEBSERV_HTPP_REQUEST_HPP
@@ -42,7 +42,6 @@ namespace http {
             const std::string& getBody() const;
             void clearBody();
             std::string takeBody();
-            std::string getHeader(const std::string& key) const;
             bool isHeadersReady() const;
             std::size_t getContentLength() const;
 

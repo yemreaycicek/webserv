@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
- * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 16:00:32
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-09-01 / 16:19:18
  */
 
 #include "http/Request.hpp"
@@ -109,10 +109,6 @@ namespace http {
 
     std::size_t Request::getContentLength() const {
         return (_header.getContentLength());
-    }
-
-    std::string Request::getHeader(const std::string& key) const {
-        return (_header.get(key));
     }
 
     void Request::validateHeaders() const {
