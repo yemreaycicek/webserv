@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-02 / 20:37:58
+ * @ Modified time: 2026-09-02 / 20:58:49
  */
 
 #include "exec/Executor.hpp"
@@ -138,18 +138,14 @@ namespace exec {
         return _responseBuilder.build(http::status::CREATED, "<html><body>File uploaded!</body></html>", "text/html");
     }
 
-    std::string Executor::handleDelete(const config::ServerBlock& sb, const http::Request& r) {
-        exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
+    std::string Executor::handleDelete(const config::ServerBlock& sb, const http::Request& r, exec::ResolvedPath& rp) {
         if (rp.location == NULL) return (buildError(http::status::NOT_FOUND, sb));
-        const std::vector<std::string>& methods = rp.location->allowMethods;
-        for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
-            if (*it == "DELETE") {
-                if (!getPathType(rp.fsPath)) return (buildError(http::status::NOT_FOUND, sb));
-                if (remove(rp.fsPath.c_str()) != 0) return buildError(http::status::INTERNAL_SERVER_ERROR, sb);
-                return _responseBuilder.build(http::status::OK, "<html><body>Silindi</body></html>", "text/html");
-            }
-        }
-        return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+        if (!isMethodAllowed(rp.location, "DELETE")) return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+        PathType type = getPathType(rp.fsPath);
+        if (type == PATH_NONE) return (buildError(http::status::NOT_FOUND, sb));
+        if (type == PATH_DIR) return (buildError(http::status::FORBIDDEN, sb));
+        if (remove(rp.fsPath.c_str()) != 0) return buildError(http::status::INTERNAL_SERVER_ERROR, sb);
+        return _responseBuilder.build(http::status::OK, "<html><body>Deleted!</body></html>", "text/html");
     }
 
     RequestData Executor::buildRequestData(const http::Request& r) const {
@@ -256,7 +252,7 @@ namespace exec {
             return (handlePost(sb, r, rp));
         }
         if (m == http::DELETE) {
-            return (handleDelete(sb, r));
+            return (handleDelete(sb, r, rp));
         }
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
