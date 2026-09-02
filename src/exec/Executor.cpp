@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-02 / 18:28:43
+ * @ Modified time: 2026-09-02 / 19:20:21
  */
 
 #include "exec/Executor.hpp"
@@ -29,9 +29,12 @@ namespace exec {
         return PATH_NONE;
     }
 
-    std::string Executor::readFile(const std::string& path) const {
+    std::string Executor::readFile(const std::string& path, bool& ok) const {
         std::ifstream file(path.c_str());
-        if (!file.is_open()) return "";
+        if (!file.is_open()) {
+            ok = false;
+            return "";
+        }
         std::stringstream ss;
         ss << file.rdbuf();
         return ss.str();
@@ -42,8 +45,9 @@ namespace exec {
         if (it != sb.errorPages.end()) {
             std::string path = it->second;
             if (!path.empty() && path[0] == '/') path = "." + path;
-            std::string content = readFile(path);
-            if (!content.empty()) return _responseBuilder.build(code, content, "text/html");
+            bool ok = true;
+            std::string content = readFile(path, ok);
+            if (ok && !content.empty()) return _responseBuilder.build(code, content, "text/html");
         }
         std::string body = "<html><body><h1>" + str::to_string(code) + " "
                          + http::status::getReasonPhrase(code) + "</h1></body></html>";
@@ -84,12 +88,11 @@ namespace exec {
         return (body.str());
     }
 
-    std::string Executor::handleGet(const config::ServerBlock& sb, const http::Request& r) {
-        exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
+    std::string Executor::handleGet(const config::ServerBlock& sb, const http::Request& r, exec::ResolvedPath& rp) {
         if (rp.location == NULL) return (buildError(http::status::NOT_FOUND, sb));
-        const std::vector<std::string>& methods = rp.location->allowMethods;
-        if (!isMethodAllowed(rp.location, "GET")) buildError(http::status::METHOD_NOT_ALLOWED, sb);
+        if (!isMethodAllowed(rp.location, "GET")) return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
         PathType type = getPathType(rp.fsPath);
+        bool ok = true;
         if (type == PATH_NONE) return (buildError(http::status::NOT_FOUND, sb));
         if (type == PATH_DIR) {
             std::string indexName = rp.location->index;
@@ -98,8 +101,9 @@ namespace exec {
                 if (indexPath[indexPath.size() - 1] != '/') indexPath += '/';
                 indexPath += indexName;
                 if (getPathType(indexPath) == PATH_FILE) {
-                    std::string content = readFile(indexPath);
-                    return _responseBuilder.build(http::status::OK, content, getContentType(indexPath));
+                    std::string content = readFile(indexPath, ok);
+                    if (ok) return _responseBuilder.build(http::status::OK, content, getContentType(indexPath));
+                    return (buildError(http::status::FORBIDDEN, sb));
                 }
             }
             if (rp.location->autoindex) {
@@ -109,9 +113,9 @@ namespace exec {
             if (indexName.empty()) return (buildError(http::status::FORBIDDEN, sb));
             return (buildError(http::status::NOT_FOUND, sb));
         }
-        std::string content = readFile(rp.fsPath);
-        if (content.empty()) return (buildError(http::status::NOT_FOUND, sb));
-        return (_responseBuilder.build(http::status::OK, content, getContentType(rp.fsPath)));
+        std::string content = readFile(rp.fsPath, ok);
+        if (ok) return (_responseBuilder.build(http::status::OK, content, getContentType(rp.fsPath)));
+        return (buildError(http::status::FORBIDDEN, sb));
     }
 
     std::string Executor::handlePost(const config::ServerBlock& sb, const http::Request& r) {
@@ -243,12 +247,12 @@ namespace exec {
 
         http::Method m = r.getMethod();
         if (m == http::GET) {
-            return (handleGet(sb, r));
+            return (handleGet(sb, r, rp));
         }
         if (m == http::HEAD) {
             if (rp.location == NULL || !isMethodAllowed(rp.location, "HEAD"))
                 return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
-            std::string res = handleGet(sb, r);
+            std::string res = handleGet(sb, r, rp);
             std::string::size_type pos = res.find("\r\n\r\n");
             if (pos != std::string::npos) res.erase(pos + 4);
             return (res);
