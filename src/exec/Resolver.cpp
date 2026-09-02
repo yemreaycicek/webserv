@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-26 / 00:10:30
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-02 / 12:48:09
+ * @ Modified time: 2026-09-02 / 13:55:50
  */
 
 
@@ -21,9 +21,9 @@ namespace exec {
         for (std::vector<config::LocationBlock>::const_iterator it = sb.locations.begin(); it != sb.locations.end(); ++it){
             std::string normPath = it->path;
             if (normPath.length() > 1 && normPath[normPath.length() - 1] == '/') normPath = normPath.substr(0, normPath.length() - 1);
-            if (uri.compare(0, it->path.length(), it->path) == 0) {
-                if ((it->path == "/" || uri.length() == it->path.length() || uri[it->path.length()] == '/') && max < it->path.length()) {
-                    max = it->path.length();
+            if (uri.compare(0, normPath.length(), normPath) == 0) {
+                if ((normPath == "/" || uri.length() == normPath.length() || uri[normPath.length()] == '/') && max < normPath.length()) {
+                    max = normPath.length();
                     res = &(*it);
                 }
             }
