@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 16:06:11
+ * @ Modified time: 2026-09-02 / 18:28:43
  */
 
 #include "exec/Executor.hpp"
@@ -86,39 +86,32 @@ namespace exec {
 
     std::string Executor::handleGet(const config::ServerBlock& sb, const http::Request& r) {
         exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
-        if (rp.location == NULL) {
+        if (rp.location == NULL) return (buildError(http::status::NOT_FOUND, sb));
+        const std::vector<std::string>& methods = rp.location->allowMethods;
+        if (!isMethodAllowed(rp.location, "GET")) buildError(http::status::METHOD_NOT_ALLOWED, sb);
+        PathType type = getPathType(rp.fsPath);
+        if (type == PATH_NONE) return (buildError(http::status::NOT_FOUND, sb));
+        if (type == PATH_DIR) {
+            std::string indexName = rp.location->index;
+            if (!indexName.empty()) {
+                std::string indexPath = rp.fsPath;
+                if (indexPath[indexPath.size() - 1] != '/') indexPath += '/';
+                indexPath += indexName;
+                if (getPathType(indexPath) == PATH_FILE) {
+                    std::string content = readFile(indexPath);
+                    return _responseBuilder.build(http::status::OK, content, getContentType(indexPath));
+                }
+            }
+            if (rp.location->autoindex) {
+                std::string listing = generateAutoindex(rp.fsPath, r.getUri());
+                if (!listing.empty()) return (_responseBuilder.build(http::status::OK, listing, "text/html"));
+            }
+            if (indexName.empty()) return (buildError(http::status::FORBIDDEN, sb));
             return (buildError(http::status::NOT_FOUND, sb));
         }
-
-        const std::vector<std::string>& methods = rp.location->allowMethods;
-        for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
-            if (*it == "GET") {
-                PathType type = getPathType(rp.fsPath);
-                if (type == PATH_NONE) return (buildError(http::status::NOT_FOUND, sb));
-                if (type == PATH_DIR) {
-                    std::string indexName = rp.location->index;
-                    if (!indexName.empty()) {
-                        std::string indexPath = rp.fsPath;
-                        if (indexPath[indexPath.size() - 1] != '/') indexPath += '/';
-                        indexPath += indexName;
-                        if (getPathType(indexPath) == PATH_FILE) {
-                            std::string content = readFile(indexPath);
-                            return _responseBuilder.build(http::status::OK, content, getContentType(indexPath));
-                        }
-                    }
-                    if (rp.location->autoindex) {
-                        std::string listing = generateAutoindex(rp.fsPath, r.getUri());
-                        if (!listing.empty()) return (_responseBuilder.build(http::status::OK, listing, "text/html"));
-                    }
-                    if (indexName.empty()) return (buildError(http::status::FORBIDDEN, sb));
-                    return (buildError(http::status::NOT_FOUND, sb));
-                }
-                std::string content = readFile(rp.fsPath);
-                if (content.empty()) return (buildError(http::status::NOT_FOUND, sb));
-                return (_responseBuilder.build(http::status::OK, content, getContentType(rp.fsPath)));
-            }
-        }
-        return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+        std::string content = readFile(rp.fsPath);
+        if (content.empty()) return (buildError(http::status::NOT_FOUND, sb));
+        return (_responseBuilder.build(http::status::OK, content, getContentType(rp.fsPath)));
     }
 
     std::string Executor::handlePost(const config::ServerBlock& sb, const http::Request& r) {
@@ -243,10 +236,7 @@ namespace exec {
     }
 
     std::string Executor::execute(const config::ServerBlock& sb, const http::Request& r) {
-        std::string uri = r.getUri();
-        std::string::size_type qpos = uri.find('?');
-        std::string pathOnly = (qpos == std::string::npos) ? uri : uri.substr(0, qpos);
-        exec::ResolvedPath rp = _resolver.resolve(sb, pathOnly);
+        exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
         if (rp.location != NULL && rp.location->redirect.isSet()) {
             return _responseBuilder.buildRedirect(static_cast<http::status::Code>(rp.location->redirect.code), rp.location->redirect.target);
         }
