@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-02 / 19:20:21
+ * @ Modified time: 2026-09-02 / 20:37:58
  */
 
 #include "exec/Executor.hpp"
@@ -118,28 +118,24 @@ namespace exec {
         return (buildError(http::status::FORBIDDEN, sb));
     }
 
-    std::string Executor::handlePost(const config::ServerBlock& sb, const http::Request& r) {
-        exec::ResolvedPath rp = _resolver.resolve(sb, r.getUri());
+    std::string Executor::handlePost(const config::ServerBlock& sb, const http::Request& r, exec::ResolvedPath& rp) {
         if (rp.location == NULL) return (buildError(http::status::NOT_FOUND, sb));
-        const std::vector<std::string>& methods = rp.location->allowMethods;
-        for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
-            if (*it == "POST") {
-                if (r.getBody().size() > getMaxBodySize(sb, rp.location)) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
-                if (!rp.location->uploadEnable) return (buildError(http::status::FORBIDDEN, sb));
-
-                std::string uri = r.getUri();
-                std::string fileName = uri.substr(uri.rfind('/') + 1);
-                std::string us = rp.location->uploadStore;
-                if (!us.empty() && us[us.size() - 1] != '/') us += '/';
-                us += fileName;
-                std::ofstream file(us.c_str());
-                if (!file.is_open()) return (buildError(http::status::INTERNAL_SERVER_ERROR, sb));
-                file << r.getBody();
-                file.close();
-                return _responseBuilder.build(http::status::CREATED, "<html><body>Dosya yuklendi</body></html>", "text/html");
-            }
-        }
-        return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+        if (!isMethodAllowed(rp.location, "POST")) return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+        if (r.getBody().size() > getMaxBodySize(sb, rp.location)) return (buildError(http::status::CONTENT_TOO_LARGE, sb));
+        if (!rp.location->uploadEnable) return (buildError(http::status::FORBIDDEN, sb));
+        std::string uri = r.getUri();
+        std::string::size_type qpos = uri.find('?');
+        if (qpos != std::string::npos) uri = uri.substr(0, qpos);
+        std::string fileName = uri.substr(uri.rfind('/') + 1);
+        if (fileName.empty()) return (buildError(http::status::BAD_REQUEST, sb));
+        std::string us = rp.location->uploadStore;
+        if (!us.empty() && us[us.size() - 1] != '/') us += '/';
+        us += fileName;
+        std::ofstream file(us.c_str());
+        if (!file.is_open()) return (buildError(http::status::INTERNAL_SERVER_ERROR, sb));
+        file << r.getBody();
+        file.close();
+        return _responseBuilder.build(http::status::CREATED, "<html><body>File uploaded!</body></html>", "text/html");
     }
 
     std::string Executor::handleDelete(const config::ServerBlock& sb, const http::Request& r) {
@@ -250,15 +246,14 @@ namespace exec {
             return (handleGet(sb, r, rp));
         }
         if (m == http::HEAD) {
-            if (rp.location == NULL || !isMethodAllowed(rp.location, "HEAD"))
-                return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
+            if (rp.location == NULL || !isMethodAllowed(rp.location, "HEAD")) return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
             std::string res = handleGet(sb, r, rp);
             std::string::size_type pos = res.find("\r\n\r\n");
             if (pos != std::string::npos) res.erase(pos + 4);
             return (res);
         }
         if (m == http::POST) {
-            return (handlePost(sb, r));
+            return (handlePost(sb, r, rp));
         }
         if (m == http::DELETE) {
             return (handleDelete(sb, r));
