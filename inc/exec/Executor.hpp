@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-02 / 20:41:34
+ * @ Modified time: 2026-09-02 / 21:24:01
  */
 
 
@@ -49,7 +49,7 @@ namespace exec {
             std::string     getContentType(const std::string& path) const;
             std::string     buildError(http::status::Code code, const config::ServerBlock& sb) const;
             std::string     handlePost(const config::ServerBlock& sb, const http::Request& r, exec::ResolvedPath& rp);
-            std::string     handleDelete(const config::ServerBlock& sb, const http::Request& r, exec::ResolvedPath& rp);
+            std::string     handleDelete(const config::ServerBlock& sb, exec::ResolvedPath& rp);
             RequestData     buildRequestData(const http::Request& r) const;
             std::size_t     getMaxBodySize(const config::ServerBlock& sb, const config::LocationBlock* loc) const;
             bool            isCgiRequest(const ResolvedPath& rp) const;

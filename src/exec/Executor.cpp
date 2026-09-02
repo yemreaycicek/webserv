@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-02 / 20:58:49
+ * @ Modified time: 2026-09-02 / 21:23:49
  */
 
 #include "exec/Executor.hpp"
@@ -138,7 +138,7 @@ namespace exec {
         return _responseBuilder.build(http::status::CREATED, "<html><body>File uploaded!</body></html>", "text/html");
     }
 
-    std::string Executor::handleDelete(const config::ServerBlock& sb, const http::Request& r, exec::ResolvedPath& rp) {
+    std::string Executor::handleDelete(const config::ServerBlock& sb, exec::ResolvedPath& rp) {
         if (rp.location == NULL) return (buildError(http::status::NOT_FOUND, sb));
         if (!isMethodAllowed(rp.location, "DELETE")) return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
         PathType type = getPathType(rp.fsPath);
@@ -252,7 +252,7 @@ namespace exec {
             return (handlePost(sb, r, rp));
         }
         if (m == http::DELETE) {
-            return (handleDelete(sb, r, rp));
+            return (handleDelete(sb, rp));
         }
         return (buildError(http::status::METHOD_NOT_ALLOWED, sb));
     }
