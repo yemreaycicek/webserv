@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 16:04:15
+ * @ Modified time: 2026-09-02 / 21:24:01
  */
 
 
@@ -43,13 +43,13 @@ namespace exec {
             Executor&       operator=(const Executor& other);
 
             PathType        getPathType(const std::string& path) const;
-            std::string     handleGet(const config::ServerBlock& sb, const http::Request& r);
-            std::string     readFile(const std::string& path) const;
+            std::string     handleGet(const config::ServerBlock& sb, const http::Request& r, exec::ResolvedPath& rp);
+            std::string     readFile(const std::string& path, bool& ok) const;
             std::string     generateAutoindex(const std::string& fsPath, const std::string& uri) const;
             std::string     getContentType(const std::string& path) const;
             std::string     buildError(http::status::Code code, const config::ServerBlock& sb) const;
-            std::string     handlePost(const config::ServerBlock& sb, const http::Request& r);
-            std::string     handleDelete(const config::ServerBlock& sb, const http::Request& r);
+            std::string     handlePost(const config::ServerBlock& sb, const http::Request& r, exec::ResolvedPath& rp);
+            std::string     handleDelete(const config::ServerBlock& sb, exec::ResolvedPath& rp);
             RequestData     buildRequestData(const http::Request& r) const;
             std::size_t     getMaxBodySize(const config::ServerBlock& sb, const config::LocationBlock* loc) const;
             bool            isCgiRequest(const ResolvedPath& rp) const;

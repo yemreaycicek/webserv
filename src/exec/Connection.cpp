@@ -2,13 +2,12 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 17:44:24
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 15:55:05
+ * @ Modified time: 2026-08-30 / 21:23:15
  */
 
 #include "exec/Connection.hpp"
 #include "http/Request.hpp"
 #include <sys/socket.h>
-#include <cerrno>
 
 namespace exec {
     Connection::Connection(int fd) : _socket(fd), _wrComplete(true), _state(READING_REQUEST) {}
@@ -36,10 +35,8 @@ namespace exec {
         ssize_t rc = recv(getFd(), bf, sizeof(bf), 0);
         if (rc > 0) {
             _request.parse(std::string(bf, rc));
-        } else if (rc < 0) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) return; // non-blocking socket, nothing to read yet
-            _state = CLOSING;
-        } else { // rc == 0: peer closed
+        }
+        else { // rc == 0: peer closed
             _state = CLOSING;
         }
     }
@@ -49,11 +46,6 @@ namespace exec {
             ssize_t sd = send(getFd(), _wrBuf.c_str(), _wrBuf.size(), 0);
             if (sd > 0) {
                 _wrBuf.erase(0, sd);
-            }
-            else if (sd < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) return; // socket buffer full, try again later
-                _state = CLOSING;
-                return;
             }
             else {
                 _state = CLOSING;
