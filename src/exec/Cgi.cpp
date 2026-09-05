@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-05 / 19:20:53
+ * @ Modified time: 2026-09-05 / 23:19:18
  */
 
 
@@ -101,6 +101,11 @@ namespace exec {
             close(_outRdFd);
             _outRdFd = -1;
             waitpid(_pid, NULL, 0);
+
+            if (waitpid(_pid, NULL, WNOHANG) == 0) {
+                kill(_pid, SIGKILL);
+                waitpid(_pid, NULL, 0);
+            }
             _pid = -1;
             if (_hadAnyOutput) _state = DONE;
             else _state = FAILED;
@@ -158,7 +163,10 @@ namespace exec {
             _outRdFd = -1;
         }
         if (_pid != -1) {
-            waitpid(_pid, NULL, 0);
+            if (waitpid(_pid, NULL, WNOHANG) == 0) {
+                kill(_pid, SIGKILL);
+                waitpid(_pid, NULL, 0);
+            }
             _pid = -1;
         }
     }
