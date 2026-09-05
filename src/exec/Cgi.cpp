@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 15:53:06
+ * @ Modified time: 2026-09-05 / 19:20:53
  */
 
 
@@ -11,7 +11,7 @@
 #include <sstream>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <cerrno>
+
 
 namespace exec {
     Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _inputDone(false), _hadAnyOutput(false), _headersRelayed(false), _lastActivity(0) {}
@@ -57,7 +57,6 @@ namespace exec {
                 _lastActivity = time(NULL);
             }
             else if (n < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
                 _state = FAILED;
                 return ;
             }
@@ -107,7 +106,6 @@ namespace exec {
             else _state = FAILED;
         }
         else {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
             _state = FAILED;
         }
     }
@@ -223,8 +221,8 @@ namespace exec {
             _outRdFd = outPipe[0];
             close(inPipe[0]);
             close(outPipe[1]);
-            fcntl(_inWrFd, F_SETFL, fcntl(_inWrFd, F_GETFL) | O_NONBLOCK);
-            fcntl(_outRdFd, F_SETFL, fcntl(_outRdFd, F_GETFL) | O_NONBLOCK);
+            fcntl(_inWrFd, F_SETFL, O_NONBLOCK);
+            fcntl(_outRdFd, F_SETFL, O_NONBLOCK);
             _state = WRITING;
         }
     }
