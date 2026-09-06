@@ -76,7 +76,7 @@ namespace exec {
         }
     }
 
-    void Cgi::feed(const std::string& chunk) {
+    void Cgi::appendInput(const std::string& chunk) {
         if (chunk.empty()) return;
         _input += chunk;
         _lastActivity = time(NULL);
