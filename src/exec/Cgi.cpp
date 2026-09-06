@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-05 / 23:19:18
+ * @ Modified time: 2026-09-06 / 14:22:10
  */
 
 
@@ -15,7 +15,9 @@
 
 namespace exec {
     Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _inputDone(false), _hadAnyOutput(false), _headersRelayed(false), _lastActivity(0) {}
-    Cgi::~Cgi() {}
+    Cgi::~Cgi() {
+        cleanup();
+    }
 
     std::vector<std::string> Cgi::buildEnv(const RequestData& req, const std::string& scriptPath) const {
         std::vector<std::string> env;
@@ -100,8 +102,6 @@ namespace exec {
         else if (n == 0) {
             close(_outRdFd);
             _outRdFd = -1;
-            waitpid(_pid, NULL, 0);
-
             if (waitpid(_pid, NULL, WNOHANG) == 0) {
                 kill(_pid, SIGKILL);
                 waitpid(_pid, NULL, 0);

@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-01 / 18:04:11
+ * @ Modified time: 2026-09-06 / 14:24:26
  */
 
 #include "exec/Server.hpp"
@@ -14,6 +14,9 @@
 #include <poll.h>
 #include <iostream>
 #include <signal.h>
+#include <csignal>
+
+extern volatile std::sig_atomic_t g_running;
 
 namespace exec {
     Server::Server(const config::Router& config) : _config(config), _poller() {
@@ -32,11 +35,20 @@ namespace exec {
         }
     }
     exec::Server::~Server() {
-        std::map<int, exec::Connection*>::iterator it = _connections.begin();
-        for (; it != _connections.end(); ++it)
-            delete it->second;
-        for (size_t i = 0; i < _listenSockets.size(); ++i)
-            delete _listenSockets[i];
+    for (std::map<int, exec::Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) delete it->second;
+    std::vector<Cgi*> uniqueCgis;
+    for (std::map<int, Cgi*>::iterator it = _cgi.begin(); it != _cgi.end(); ++it) {
+        bool found = false;
+        for (size_t i = 0; i < uniqueCgis.size(); ++i) {
+            if (uniqueCgis[i] == it->second) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) uniqueCgis.push_back(it->second);
+    }
+    for (size_t i = 0; i < uniqueCgis.size(); ++i) delete uniqueCgis[i];
+    for (size_t i = 0; i < _listenSockets.size(); ++i) delete _listenSockets[i];
     }
 
     void Server::addCl(int cl_fd, short events) {
@@ -336,7 +348,7 @@ namespace exec {
     }
 
     void Server::run() {
-        while (true) {
+        while (g_running) {
             std::vector<pollfd> pl = _poller.pollReady(120);
             for (size_t i = 0; i < pl.size(); ++i) {
                 int fd = pl[i].fd;
