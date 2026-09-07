@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 18:52:49
+ * @ Modified time: 2026-09-07 / 18:53:52
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -15,7 +15,8 @@
 #include "config/Lexer.hpp"
 
 namespace config {
-        const std::size_t UNSET_BODY_SIZE = static_cast<std::size_t>(-1);
+    const std::size_t UNSET_BODY_SIZE = static_cast<std::size_t>(-1);
+
     struct Redirect {
         int code;
         std::string target;
