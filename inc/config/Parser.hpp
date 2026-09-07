@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
- * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 15:24:11
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-09-07 / 18:49:54
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -33,8 +33,8 @@ namespace config {
         Redirect redirect;
         bool uploadEnable;
         std::string uploadStore;
-        std::string cgiExtension;   //! ".py"
-        std::string cgiPass;        //! "/usr/bin/python3"
+        std::string cgiExtension;
+        std::string cgiPass;
         std::size_t clientMaxBodySize;
 
 
@@ -59,8 +59,8 @@ namespace config {
 
             std::vector<ServerBlock> parse();
 
-            void parseCgiExtension(LocationBlock& location);    //! check
-            void parseCgiPass(LocationBlock& location);         //! check
+            void parseCgiExtension(LocationBlock& location);
+            void parseCgiPass(LocationBlock& location);
 
         private:
             typedef void(Parser::*ServerDirectiveHandler)(ServerBlock&);

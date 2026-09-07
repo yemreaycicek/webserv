@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:10:50
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-01 / 16:19:23
+ * @ Modified time: 2026-09-07 / 18:50:09
  */
 
 #ifndef WEBSERV_HTPP_REQUEST_HPP
@@ -36,7 +36,7 @@ namespace http {
 
             bool isComplete() const;
             bool hasError() const;
-            status::Code getErrorCode() const; //! check
+            status::Code getErrorCode() const;
             Method getMethod() const;
             const std::string& getUri() const;
             const std::string& getBody() const;
@@ -45,7 +45,7 @@ namespace http {
             bool isHeadersReady() const;
             std::size_t getContentLength() const;
 
-            const std::map<std::string, std::string>& getHeaders() const; //! check
+            const std::map<std::string, std::string>& getHeaders() const;
     
         private:
             State _state;

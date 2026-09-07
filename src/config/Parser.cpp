@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-08-29 / 19:43:24
+ * @ Modified time: 2026-09-07 / 18:50:14
  */
 
 #include "config/Parser.hpp"
@@ -52,8 +52,8 @@ namespace config {
         _locationHandler["return"] = &Parser::parseReturn;
         _locationHandler["upload_enable"] = &Parser::parseUploadEnable;
         _locationHandler["upload_store"] = &Parser::parseUploadStore;
-        _locationHandler["cgi_extension"] = &Parser::parseCgiExtension; //!check
-        _locationHandler["cgi_pass"] = &Parser::parseCgiPass;           //!check
+        _locationHandler["cgi_extension"] = &Parser::parseCgiExtension;
+        _locationHandler["cgi_pass"] = &Parser::parseCgiPass;
         _locationHandler["client_max_body_size"] = &Parser::parseClientMaxBodySize;
 
     }

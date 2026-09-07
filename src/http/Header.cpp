@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:50:32
- * @ Modified by: akosaca
- * @ Modified time: 2026-08-15 / 12:31:10
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-09-07 / 18:50:20
  */
 
 #include "http/Header.hpp"
@@ -98,7 +98,7 @@ namespace http {
             return (false);
         }
 
-        std::string lastCoding; //! check
+        std::string lastCoding;
         std::size_t start = 0;
         while (start <= value.length()) {
             std::size_t comma = value.find(",", start);

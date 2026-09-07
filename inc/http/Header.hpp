@@ -1,8 +1,8 @@
 /**
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 16:47:15
- * @ Modified by: akosaca
- * @ Modified time: 2026-08-13 / 19:15:13
+ * @ Modified by: yaycicek
+ * @ Modified time: 2026-09-07 / 18:49:59
  */
 
 #ifndef WEBSERV_HTTP_HEADER_HPP
@@ -27,7 +27,7 @@ namespace http {
             std::size_t getContentLength() const;
             bool isChunked() const;
 
-            const std::map<std::string, std::string>& getHeaders() const; //! check
+            const std::map<std::string, std::string>& getHeaders() const;
 
         private:
             std::map<std::string, std::string> _fields;
