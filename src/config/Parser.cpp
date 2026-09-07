@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 19:23:19
+ * @ Modified time: 2026-09-07 / 19:25:30
  */
 
 #include "config/Parser.hpp"
@@ -204,7 +204,12 @@ namespace config {
     }
 
     void Parser::parseUploadStore(LocationBlock& location) {
-        location.uploadStore = consumeWord("upload_store");
+        std::string storePath = consumeWord("upload_store");
+        
+        if (storePath.length() > 1 && storePath.at(storePath.length() - 1) == '/') {
+            throw SyntaxError("Invalid upload_store path '" + storePath + "' (Do not use a trailing slash)");
+        }
+        location.uploadStore = storePath;
     }
 
     void Parser::parseCgiExtension(LocationBlock& location) {
