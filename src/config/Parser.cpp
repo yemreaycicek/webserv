@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 18:50:14
+ * @ Modified time: 2026-09-07 / 19:13:07
  */
 
 #include "config/Parser.hpp"
@@ -203,7 +203,12 @@ namespace config {
     }
 
     void Parser::parseCgiExtension(LocationBlock& location) {
-        location.cgiExtension = consumeWord("cgi_extension");
+        std::string extension = consumeWord("cgi_extension");
+
+        if (extension.empty() || extension.at(0) != '.') {
+            throw SyntaxError("Invalid cgi_extension '" + extension + "' (Must start with a dot, e.g., '.py')");
+        }
+        location.cgiExtension = extension;
     }
     
     void Parser::parseCgiPass(LocationBlock& location) {
