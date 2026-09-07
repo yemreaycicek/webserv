@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:07:45
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 15:56:59
+ * @ Modified time: 2026-09-07 / 15:15:37
  */
 
 #include "net/ListenSocket.hpp"
@@ -27,8 +27,7 @@ namespace net {
 
     int ListenSocket::createSocket() {
         int fd = socket(AF_INET, SOCK_STREAM, 0);
-        if (fd < 0)
-            throw ListenSocketError("ListenSocket: socket() failed");
+        if (fd < 0) throw ListenSocketError("ListenSocket: socket() failed");
         return (fd);
     }
 
