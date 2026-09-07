@@ -1,0 +1,42 @@
+>GET
+curl -v http://127.0.0.1:8080/
+curl -v http://127.0.0.1:8080/style.css
+
+>POST
+curl -v -X POST http://127.0.0.1:8080/upload/deneme.txt \
+  -H "Content-Type: text/plain" \
+  --data "merhaba dunya"
+
+>DELETE
+curl -v -X DELETE http://127.0.0.1:8080/ab.txt
+
+>autoindex
+curl -v http://127.0.0.1:8042/upload/
+
+>Redirect
+curl -v -L http://127.0.0.1:8080/old
+
+>403 - FORBIDDEN
+curl -v -X POST http://127.0.0.1:8080/ --data "test"
+
+>404 - NOT_FOUND
+curl -v http://127.0.0.1:8080/yokboyle.html
+
+>405 - METHOD_NOT_ALLOWED
+curl -v -X DELETE http://127.0.0.1:8080/image/kare.png
+
+>413 - CONTENT_TOO_LARGE
+curl -v -X POST http://127.0.0.1:8080/upload/buyuk.bin \
+  --data-binary @<(head -c 11M /dev/zero)
+
+>501 - NOT_IMPLEMENTED
+curl -v -X PUT http://127.0.0.1:8080/
+
+>CGI - GET
+curl -d "isim=ali" http://127.0.0.1:8042/cgi/hello.py?id
+
+>CGI - POST
+curl -v --data "aaa" -H "Content-Type: text/plain" http://127.0.0.1:8080/cgi/env.py
+
+>CGI - 502
+curl -v http://127.0.0.1:8080/cgi/evil.py
