@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-20 / 18:37:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-07 / 15:13:19
+ * @ Modified time: 2026-09-07 / 15:35:44
  */
 
 #include "net/Address.hpp"
@@ -29,9 +29,5 @@ namespace net {
 
     socklen_t Address::getSize() const {
         return (sizeof(_addr));
-    }
-
-    unsigned short Address::getPort() const{
-        return (ntohs(_addr.sin_port));
     }
 }
