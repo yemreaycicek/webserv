@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 17:44:24
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-30 / 21:23:15
+ * @ Modified time: 2026-09-07 / 16:33:01
  */
 
 #include "exec/Connection.hpp"
@@ -14,11 +14,11 @@ namespace exec {
 
     Connection::~Connection() {}
 
-    int Connection::getFd() const{
+    int Connection::getFd() const {
         return (_socket.getFd());
     }
 
-    ConState Connection::getState() const{
+    ConState Connection::getState() const {
         return (_state);
     }
 
@@ -33,12 +33,8 @@ namespace exec {
     void Connection::onReadable(){
         char bf[4096];
         ssize_t rc = recv(getFd(), bf, sizeof(bf), 0);
-        if (rc > 0) {
-            _request.parse(std::string(bf, rc));
-        }
-        else { // rc == 0: peer closed
-            _state = CLOSING;
-        }
+        if (rc > 0) _request.parse(std::string(bf, rc));
+        else _state = CLOSING;
     }
 
     void Connection::onWritable(){
@@ -52,9 +48,6 @@ namespace exec {
                 return;
             }
         }
-        // Only actually close once nothing is queued AND no more is coming —
-        // a streaming response can have _wrBuf empty between two chunks of
-        // CGI output while it's still very much in progress.
         if (_wrBuf.empty() && _wrComplete) _state = CLOSING;
     }
 
