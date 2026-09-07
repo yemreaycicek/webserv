@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 19:13:07
+ * @ Modified time: 2026-09-07 / 19:17:56
  */
 
 #include "config/Parser.hpp"
@@ -212,7 +212,12 @@ namespace config {
     }
     
     void Parser::parseCgiPass(LocationBlock& location) {
-        location.cgiPass = consumeWord("cgi_pass");
+        std::string pass = consumeWord("cgi_pass");
+    
+        if (pass.empty() || pass.at(0) != '/') {
+            throw SyntaxError("Invalid cgi_pass '" + pass + "' (Must be an absolute path starting with '/', e.g., '/usr/bin/python3')");
+        }
+        location.cgiPass = pass;
     }
     
     void Parser::parseClientMaxBodySize(LocationBlock& location) {
