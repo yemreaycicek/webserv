@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 19:25:30
+ * @ Modified time: 2026-09-07 / 20:07:51
  */
 
 #include "config/Parser.hpp"
@@ -305,6 +305,28 @@ namespace config {
 
         std::string ip = value.substr(0, colonPos);
         std::string portString = value.substr(colonPos + 1);
+        
+        std::size_t startPos = 0;
+        std::size_t dotPos = 0;
+        int blockCount = 0;
+        
+        while ((dotPos = ip.find('.', startPos)) != std::string::npos || startPos < ip.length()) {
+            std::string block = (dotPos != std::string::npos) ? ip.substr(startPos, dotPos - startPos) : ip.substr(startPos);
+            int ipPart;
+            
+            if (block.empty() || !str::to_numeric(block, ipPart) || ipPart < 0 || ipPart > 255) {
+                throw SyntaxError("Invalid IP address '" + ip + "' (Each block must be between 0 and 255)");
+            }
+            
+            blockCount++;
+            if (dotPos == std::string::npos) break;
+            startPos = dotPos + 1;
+        }
+        
+        if (blockCount != 4) {
+            throw SyntaxError("Invalid IP address '" + ip + "' (Must contain exactly 4 blocks, e.g., 127.0.0.1)");
+        }
+
         int port;
 
         if (!str::to_numeric(portString, port)) {
