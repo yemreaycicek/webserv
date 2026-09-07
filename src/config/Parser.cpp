@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 19:17:56
+ * @ Modified time: 2026-09-07 / 19:23:19
  */
 
 #include "config/Parser.hpp"
@@ -159,7 +159,12 @@ namespace config {
     }
 
     void Parser::parseRoot(LocationBlock& location) {
-        location.root = consumeWord("root");
+        std::string rootPath = consumeWord("root");
+
+        if (rootPath.length() > 1 && rootPath.at(rootPath.length() - 1) == '/') {
+            throw SyntaxError("Invalid root path '" + rootPath + "' (Do not use a trailing slash)");
+        }
+        location.root = rootPath;
     }
     
     void Parser::parseIndex(LocationBlock& location) {
