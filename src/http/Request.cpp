@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-23 / 13:20:59
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-01 / 16:19:18
+ * @ Modified time: 2026-09-07 / 20:21:11
  */
 
 #include "http/Request.hpp"
@@ -45,7 +45,10 @@ namespace http {
                         else return;
                         break;
                     case STATE_HEADER:
-                        if (_header.parse(_rawBuffer)) _state = STATE_BODY;
+                        if (_header.parse(_rawBuffer)) {
+                            validateHeaders();
+                            _state = STATE_BODY;
+                        }
                         else return;
                         break;
                     case STATE_BODY:
