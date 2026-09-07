@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 00:08:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 18:49:54
+ * @ Modified time: 2026-09-07 / 18:52:49
  */
 
 #ifndef WEBSERV_CONFIG_PARSER_HPP
@@ -59,9 +59,6 @@ namespace config {
 
             std::vector<ServerBlock> parse();
 
-            void parseCgiExtension(LocationBlock& location);
-            void parseCgiPass(LocationBlock& location);
-
         private:
             typedef void(Parser::*ServerDirectiveHandler)(ServerBlock&);
             typedef void(Parser::*LocationDirectiveHandler)(LocationBlock&);
@@ -92,6 +89,8 @@ namespace config {
             void parseReturn(LocationBlock& location);
             void parseUploadEnable(LocationBlock& location);
             void parseUploadStore(LocationBlock& location);
+            void parseCgiPass(LocationBlock& location);
+            void parseCgiExtension(LocationBlock& location);
             void parseClientMaxBodySize(LocationBlock& location);
             
             void validateServerBlock(const ServerBlock& server) const;
