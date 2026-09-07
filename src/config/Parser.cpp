@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 20:07:51
+ * @ Modified time: 2026-09-07 / 20:08:45
  */
 
 #include "config/Parser.hpp"
@@ -168,7 +168,15 @@ namespace config {
     }
     
     void Parser::parseIndex(LocationBlock& location) {
-        location.index = consumeWord("index");
+        std::string indexFile = consumeWord("index");
+
+        if (indexFile.at(0) == '/') {
+            throw SyntaxError("Invalid index '" + indexFile + "' (Do not use a leading slash, it must be a relative file name)");
+        }
+        if (indexFile.length() > 1 && indexFile.at(indexFile.length() - 1) == '/') {
+            throw SyntaxError("Invalid index '" + indexFile + "' (Cannot end with a trailing slash, it must be a file)");
+        }
+        location.index = indexFile;
     }
 
     void Parser::parseAllowMethods(LocationBlock& location) {
