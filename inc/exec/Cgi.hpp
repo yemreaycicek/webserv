@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 20:22:57
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 16:53:52
+ * @ Modified time: 2026-09-06 / 22:14:02
  */
 
 
@@ -46,7 +46,7 @@ namespace exec {
             void    run(const RequestData& req, const std::string& interpreter, const std::string& scriptPath);
             void    onWritable();
             void    onReadable();
-            void    feed(const std::string& chunk);
+            void    appendInput(const std::string& chunk);
             void    finishInput();
             std::size_t pendingInputBytes() const;
             State   getState() const;

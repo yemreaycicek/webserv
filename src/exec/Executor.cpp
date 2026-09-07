@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 14:05:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-02 / 21:23:49
+ * @ Modified time: 2026-09-06 / 21:54:29
  */
 
 #include "exec/Executor.hpp"
@@ -206,7 +206,7 @@ namespace exec {
         return (false);
     }
 
-    CgiDispatch Executor::prepareCgi(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi, std::string& outErrorResponse) {
+    CgiResult Executor::resolveCgiRequest(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi, std::string& outErrorResponse) {
         outCgi.isCgi = false;
         std::string uri = r.getUri();
         std::string::size_type qpos = uri.find('?');

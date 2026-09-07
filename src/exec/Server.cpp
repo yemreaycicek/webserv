@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:29
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-01 / 18:04:11
+ * @ Modified time: 2026-09-06 / 22:07:50
  */
 
 #include "exec/Server.hpp"
@@ -14,6 +14,9 @@
 #include <poll.h>
 #include <iostream>
 #include <signal.h>
+#include <csignal>
+
+extern volatile std::sig_atomic_t g_running;
 
 namespace exec {
     Server::Server(const config::Router& config) : _config(config), _poller() {
@@ -32,11 +35,20 @@ namespace exec {
         }
     }
     exec::Server::~Server() {
-        std::map<int, exec::Connection*>::iterator it = _connections.begin();
-        for (; it != _connections.end(); ++it)
-            delete it->second;
-        for (size_t i = 0; i < _listenSockets.size(); ++i)
-            delete _listenSockets[i];
+    for (std::map<int, exec::Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) delete it->second;
+    std::vector<Cgi*> uniqueCgis;
+    for (std::map<int, Cgi*>::iterator it = _cgi.begin(); it != _cgi.end(); ++it) {
+        bool found = false;
+        for (size_t i = 0; i < uniqueCgis.size(); ++i) {
+            if (uniqueCgis[i] == it->second) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) uniqueCgis.push_back(it->second);
+    }
+    for (size_t i = 0; i < uniqueCgis.size(); ++i) delete uniqueCgis[i];
+    for (size_t i = 0; i < _listenSockets.size(); ++i) delete _listenSockets[i];
     }
 
     void Server::addCl(int cl_fd, short events) {
@@ -70,7 +82,7 @@ namespace exec {
         _cgiByClient.erase(fd);
     }
 
-    void Server::buildCgi(int fd, CgiInfo& info, bool bodyComplete) {
+    void Server::startCgi(int fd, CgiInfo& info, bool bodyComplete) {
         Cgi* cgi = new Cgi(fd);
         cgi->run(info.reqData, info.interpreter, info.scriptPath);
         if (cgi->getState() == FAILED) {
@@ -96,12 +108,12 @@ namespace exec {
         else _cgiByClient[fd] = cgi;
     }
 
-    bool Server::dispatchCgi(int fd, exec::Connection* conCl) {
+    bool Server::tryHandleCgiRequest(int fd, exec::Connection* conCl) {
         try {
             const config::ServerBlock& sb = _config.getServerBlock(_clAddr[fd]);
             CgiInfo info;
             std::string errRes;
-            CgiDispatch d = _executor.prepareCgi(sb, conCl->getRequest(), info, errRes);
+            CgiResult d = _executor.resolveCgiRequest(sb, conCl->getRequest(), info, errRes);
             if (d == CGI_NONE) return (false);
             if (d == CGI_ERROR) {
                 conCl->clearRequestBody();
@@ -111,7 +123,7 @@ namespace exec {
             }
             bool bodyComplete = conCl->isRequestComplete();
             conCl->clearRequestBody();
-            buildCgi(fd, info, bodyComplete);
+            startCgi(fd, info, bodyComplete);
             return (true);
         } catch (const std::exception& e) {
             conCl->setResponse("HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
@@ -120,9 +132,9 @@ namespace exec {
         }
     }
 
-    void Server::feedCgiStream(int fd, exec::Connection* conCl, Cgi* cgi) {
+    void Server::sendRequestBodyToCgi(int fd, exec::Connection* conCl, Cgi* cgi) {
         std::string chunk = conCl->takeAvailableBody();
-        cgi->feed(chunk);
+        cgi->appendInput(chunk);
         bool complete = conCl->isRequestComplete();
         if (complete) cgi->finishInput();
         if (cgi->getInFd() != -1 && (!chunk.empty() || complete)) {
@@ -145,11 +157,11 @@ namespace exec {
             }
             std::map<int, Cgi*>::iterator streaming = _cgiByClient.find(fd);
             if (streaming != _cgiByClient.end()) {
-                feedCgiStream(fd, conCl, streaming->second);
+                sendRequestBodyToCgi(fd, conCl, streaming->second);
             }
             else {
                 bool handled = false;
-                if (conCl->getRequest().isHeadersReady() && !conCl->getRequest().hasError()) handled = dispatchCgi(fd, conCl);
+                if (conCl->getRequest().isHeadersReady() && !conCl->getRequest().hasError()) handled = tryHandleCgiRequest(fd, conCl);
                 if (!handled) {
                     if (conCl->isRequestComplete()) {
                         try {
@@ -233,7 +245,7 @@ namespace exec {
                 sepLen = 2;
             }
             if (pos == std::string::npos) return;
-            std::string head = buildStreamedCgiHead(raw.substr(0, pos));
+            std::string head = buildCgiHead(raw.substr(0, pos));
             cgi->dropOutputPrefix(pos + sepLen);
             cgi->setHeadersRelayed();
             conCl->beginStreamResponse(head);
@@ -247,7 +259,7 @@ namespace exec {
         _poller.setFdEvents(cgi->getClientFd(), events);
     }
 
-    std::string Server::buildStreamedCgiHead(const std::string& headerBlock) const {
+    std::string Server::buildCgiHead(const std::string& headerBlock) const {
         std::string statusLine = "200 OK";
         std::string outHeaders;
         std::stringstream hs(headerBlock);
@@ -336,7 +348,7 @@ namespace exec {
     }
 
     void Server::run() {
-        while (true) {
+        while (g_running) {
             std::vector<pollfd> pl = _poller.pollReady(120);
             for (size_t i = 0; i < pl.size(); ++i) {
                 int fd = pl[i].fd;

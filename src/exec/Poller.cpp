@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-21 / 22:57:06
  * @ Modified by: akosaca
- * @ Modified time: 2026-07-22 / 17:20:31
+ * @ Modified time: 2026-09-06 / 14:13:52
  */
 
 #include "exec/Poller.hpp"
@@ -44,8 +44,8 @@ namespace exec {
     std::vector<pollfd> Poller::pollReady(int timeout){
         std::vector<pollfd> readyFds;
         if (_fds.empty()) return (readyFds);
-        if (poll(&_fds[0], _fds.size(), timeout) < 0) throw PollError("Poller: Poll() failed");
-        for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it){
+        if (poll(&_fds[0], _fds.size(), timeout) < 0) return (readyFds);
+        for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); ++it) {
             if (it->revents != 0) readyFds.push_back(*it);
         }
         return (readyFds);

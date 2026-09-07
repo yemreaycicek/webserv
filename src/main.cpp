@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-05-27 / 22:18:27
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 15:56:16
+ * @ Modified time: 2026-09-06 / 14:24:46
  */
 
 #include <string>
@@ -14,9 +14,17 @@
 #include "utils/io.hpp"
 #include "exec/Server.hpp"
 
+volatile std::sig_atomic_t g_running = 1;
+
+static void handleShutdown(int) {
+    g_running = 0;
+}
+
 int main(int argc, char **argv)
 {
-    signal(SIGPIPE, SIG_IGN);
+    std::signal(SIGPIPE, SIG_IGN);
+    std::signal(SIGINT, handleShutdown);
+    std::signal(SIGTERM, handleShutdown);
     try {
         arg::Parser     args(argc, argv);
 

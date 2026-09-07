@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-02 / 13:20:15
  * @ Modified by: akosaca
- * @ Modified time: 2026-09-02 / 21:24:01
+ * @ Modified time: 2026-09-06 / 21:54:32
  */
 
 
@@ -24,7 +24,7 @@ namespace exec {
         PATH_DIR
     };
 
-    enum CgiDispatch {
+    enum CgiResult {
         CGI_NONE,
         CGI_ERROR,
         CGI_START
@@ -36,7 +36,7 @@ namespace exec {
             ~Executor();
 
             std::string     execute(const config::ServerBlock& sb, const http::Request& r);
-            CgiDispatch     prepareCgi(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi, std::string& outErrorResponse);
+            CgiResult       resolveCgiRequest(const config::ServerBlock& sb, const http::Request& r, CgiInfo& outCgi, std::string& outErrorResponse);
 
         private:
             Executor(const Executor& other);

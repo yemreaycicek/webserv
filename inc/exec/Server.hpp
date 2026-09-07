@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-07-22 / 20:11:41
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 16:07:35
+ * @ Modified time: 2026-09-06 / 22:22:04
  */
 
 #ifndef WEBSERV_EXEC_SERVER_HPP
@@ -12,7 +12,6 @@
 #include "config/Router.hpp"
 #include "exec/Poller.hpp"
 #include "exec/Connection.hpp"
-#include "exec/Server.hpp"
 #include "exec/Executor.hpp"
 #include "exec/Cgi.hpp"
 
@@ -37,12 +36,12 @@ namespace exec {
             void                                delCgi(Cgi* cgi);
             void                                handleCl(int fd, short revents);
             void                                acceptCl(int ls_fd);
-            void                                buildCgi(int fd, CgiInfo& info, bool bodyComplete);
-            bool                                dispatchCgi(int fd, exec::Connection* conCl);
-            void                                feedCgiStream(int fd, exec::Connection* conCl, Cgi* cgi);
+            void                                startCgi(int fd, CgiInfo& info, bool bodyComplete);
+            bool                                tryHandleCgiRequest(int fd, exec::Connection* conCl);
+            void                                sendRequestBodyToCgi(int fd, exec::Connection* conCl, Cgi* cgi);
             void                                handleCgi(int fd);
             void                                relayCgiOutput(Cgi* cgi);
-            std::string                         buildStreamedCgiHead(const std::string& headerBlock) const;
+            std::string                         buildCgiHead(const std::string& headerBlock) const;
             std::string                         cgiToHttp(const std::string& raw) const;
 
             const config::Router&               _config;

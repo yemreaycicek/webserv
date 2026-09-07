@@ -2,7 +2,7 @@
  * @ Author: akosaca
  * @ Create Time: 2026-08-06 / 21:21:09
  * @ Modified by: akosaca
- * @ Modified time: 2026-08-20 / 15:53:06
+ * @ Modified time: 2026-09-06 / 14:22:10
  */
 
 
@@ -11,11 +11,13 @@
 #include <sstream>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <cerrno>
+
 
 namespace exec {
     Cgi::Cgi(int clientFd) : _clientFd(clientFd), _state(NOT_STARTED), _inWrFd(-1), _outRdFd(-1), _pid(-1), _inputOffset(0), _inputDone(false), _hadAnyOutput(false), _headersRelayed(false), _lastActivity(0) {}
-    Cgi::~Cgi() {}
+    Cgi::~Cgi() {
+        cleanup();
+    }
 
     std::vector<std::string> Cgi::buildEnv(const RequestData& req, const std::string& scriptPath) const {
         std::vector<std::string> env;
@@ -57,7 +59,6 @@ namespace exec {
                 _lastActivity = time(NULL);
             }
             else if (n < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
                 _state = FAILED;
                 return ;
             }
@@ -75,7 +76,7 @@ namespace exec {
         }
     }
 
-    void Cgi::feed(const std::string& chunk) {
+    void Cgi::appendInput(const std::string& chunk) {
         if (chunk.empty()) return;
         _input += chunk;
         _lastActivity = time(NULL);
@@ -101,13 +102,15 @@ namespace exec {
         else if (n == 0) {
             close(_outRdFd);
             _outRdFd = -1;
-            waitpid(_pid, NULL, 0);
+            if (waitpid(_pid, NULL, WNOHANG) == 0) {
+                kill(_pid, SIGKILL);
+                waitpid(_pid, NULL, 0);
+            }
             _pid = -1;
             if (_hadAnyOutput) _state = DONE;
             else _state = FAILED;
         }
         else {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) return ;
             _state = FAILED;
         }
     }
@@ -160,7 +163,10 @@ namespace exec {
             _outRdFd = -1;
         }
         if (_pid != -1) {
-            waitpid(_pid, NULL, 0);
+            if (waitpid(_pid, NULL, WNOHANG) == 0) {
+                kill(_pid, SIGKILL);
+                waitpid(_pid, NULL, 0);
+            }
             _pid = -1;
         }
     }
@@ -223,8 +229,8 @@ namespace exec {
             _outRdFd = outPipe[0];
             close(inPipe[0]);
             close(outPipe[1]);
-            fcntl(_inWrFd, F_SETFL, fcntl(_inWrFd, F_GETFL) | O_NONBLOCK);
-            fcntl(_outRdFd, F_SETFL, fcntl(_outRdFd, F_GETFL) | O_NONBLOCK);
+            fcntl(_inWrFd, F_SETFL, O_NONBLOCK);
+            fcntl(_outRdFd, F_SETFL, O_NONBLOCK);
             _state = WRITING;
         }
     }
