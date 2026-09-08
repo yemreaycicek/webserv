@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:20:09
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 21:29:40
+ * @ Modified time: 2026-09-08 / 10:33:33
  */
 
 #include "config/Router.hpp"
@@ -71,10 +71,6 @@ namespace config {
             addresses.push_back(it->first);
         }
         return (addresses);
-    }
-
-    bool Router::hasServerBlock(const std::string& listenAddress) const {
-        return (_routerMap.find(listenAddress) != _routerMap.end());
     }
 
     const ServerBlock& Router::getServerBlock(const std::string& listenAddress) const {

@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-07-04 / 18:04:40
  * @ Modified by: yaycicek
- * @ Modified time: 2026-07-09 / 14:48:01
+ * @ Modified time: 2026-09-08 / 10:33:38
  */
 
 #ifndef WEBSERV_CONFIG_ROUTER_HPP
@@ -23,7 +23,6 @@ namespace config {
             ~Router();
 
             std::vector<std::string> getListenAddresses() const;
-            bool hasServerBlock(const std::string& listenAddress) const;
             const ServerBlock& getServerBlock(const std::string& listenAddress) const;
             const std::vector<ServerBlock>& getServers() const;
 
