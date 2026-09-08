@@ -2,7 +2,7 @@
  * @ Author: yaycicek
  * @ Create Time: 2026-06-06 / 01:29:42
  * @ Modified by: yaycicek
- * @ Modified time: 2026-09-07 / 20:08:45
+ * @ Modified time: 2026-09-08 / 14:04:27
  */
 
 #include "config/Parser.hpp"
@@ -182,7 +182,7 @@ namespace config {
     void Parser::parseAllowMethods(LocationBlock& location) {
         std::string method = consumeWord("allow_methods");
         do {
-            if (method != "GET" && method != "POST" && method != "DELETE") {
+            if (method != "GET" && method != "POST" && method != "DELETE" && method != "HEAD") {
                 throw SyntaxError("Unsupported HTTP method '" + method + "' in allow_methods (Only GET, POST, DELETE allowed)");
             }
             location.allowMethods.push_back(method);
